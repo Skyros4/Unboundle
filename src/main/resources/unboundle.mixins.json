@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "unboundle.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "BundleContentsMixin",
+    "BundleContentsMutableMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

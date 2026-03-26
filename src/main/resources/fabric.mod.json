@@ -1,0 +1,45 @@
+{
+	"schemaVersion": 1,
+	"id": "unboundle",
+	"version": "${version}",
+	"name": "Unboundle",
+	"description": "Realizes the unused potential of Vanilla's bundles. Access all items in the bundle with the now dynamic tooltip! Place items directly from the bundle into the world!",
+	"authors": [
+		"Skyros4"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/unboundle/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"unboundle.Unboundle"
+		],
+		"modmenu": [
+			"unboundle.ModMenuEntrypoint"
+		],
+		"client": [
+			"unboundle.UnboundleClient"
+		]
+	},
+	"mixins": [
+		"unboundle.mixins.json",
+		{
+			"config": "unboundle.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.18.4",
+		"minecraft": "~1.21.10",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"modmenu": "*",
+		"cloth-config": "*"
+	}
+}

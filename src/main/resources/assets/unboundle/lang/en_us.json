@@ -1,0 +1,7 @@
+{
+  "text.autoconfig.unboundle.title": "Unboundle",
+  "text.autoconfig.unboundle.option.rows": "Tooltip Rows",
+  "text.autoconfig.unboundle.option.rows.tooltip": "Controls the maximum number of rows for items in the bundle tooltip.",
+  "text.autoconfig.unboundle.option.columns": "Tooltip Columns",
+  "text.autoconfig.unboundle.option.columns.tooltip": "Controls the maximum number of columns for items in the bundle tooltip."
+}

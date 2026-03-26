@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "package": "unboundle.mixin.client",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "AbstractContainerMenuMixin",
+    "BundleMouseActionsMixin",
+    "ClientBundleTooltipMixin",
+    "CreativeModeInventoryScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}
