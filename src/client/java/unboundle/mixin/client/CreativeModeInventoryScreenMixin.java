@@ -30,26 +30,18 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
             method = "slotClicked(Lnet/minecraft/world/inventory/Slot;IILnet/minecraft/world/inventory/ClickType;)V",
             at = @At("HEAD")
     )
-    private void unboundle$slotClicked(Slot slot, int i, int j, ClickType clickType, CallbackInfo ci) {
+    private void resetScrollState(Slot slot, int i, int j, ClickType clickType, CallbackInfo ci) {
+        // If doing the middle click on a bundle item
         if (clickType == ClickType.CLONE && slot.getItem().getItem() instanceof BundleItem) {
-            ItemStack stack = slot.getItem();
-            // 1. Reset the UI state
+            // Resets the row offset
             BundleRenderContext.rowOffset = 0;
-
-            // 2. Get the current component
+            // Get an editable version of the bundle stack
+            ItemStack stack = slot.getItem();
             BundleContents contents = stack.getOrDefault(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY);
-
-            // 3. Use the Mutable builder (Option 2)
-            // This creates a temporary editable version of the bundle contents
             BundleContents.Mutable mutable = new BundleContents.Mutable(contents);
-
-            // Set the selected item index to -1 (none selected)
-            // Note: The method name is usually .setSelected() or .toggleSelection()
-            // depending on exact mappings, but -1 is the standard 'empty' index.
+            // Reset the selected item
             mutable.toggleSelectedItem(-1);
-
-            // 4. Set the updated component back to the stack
-            // .toImmutable() converts the Mutable builder back into the BundleContents record
+            // Write the changes into the current bundle
             stack.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
         }
     }

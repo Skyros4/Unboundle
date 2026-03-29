@@ -17,35 +17,58 @@ public class BundleRenderContext {
     // Used for the shadows of 16-stackables and unstackables, to determine whether they should render darker or brighter
     public static boolean highContrast = false;
 
+    // Allows access to the rows and columns variables
     public static BundleConfig config() {
         return AutoConfig.getConfigHolder(BundleConfig.class).getConfig();
     }
 
-    // These getter methods allow the start and end index of the currently visible window to be always calculated on the fly, preventing stale values.
-
     // Computes the earliest row offset the index can be on, resulting in the item itself showing on the bottom row of the current window.
-    public static int getRowOffsetFromIndex(int itemsSize, int index) {
+    public static int getEarliestRowOffsetFromIndex(int itemsSize, int index) {
+        // If all slots fit onto the tooltip
         if(itemsSize <= config().maxSlots()) return 0;
 
-
+        // Calculates the index of the last item on the window with rowOffset == 0.
+        // This one is variable, for all other windows it's just + config().columns on top,
+        // with an additional +1 for the very last item where the bottom right counter is usually.
+        // int lastIndexOfInitialWindow = (Items in very first row) + (items in all other rows of the initial window)
         int lastIndexOfInitialWindow = ((itemsSize - 1) % config().columns) + (config().maxSlots() - config().columns) - 1;
 
-//        System.out.println(lastIndexOfInitialWindow);
+        // If not all slots fit onto the tooltip, but we're on the initial window still
         if (index <= lastIndexOfInitialWindow) return 0;
 
-//        System.out.println(Mth.positiveCeilDiv(Math.min(index, itemsSize - 2) - lastIndexOfInitialWindow, BundleConfig.COLUMNS));
+        // If we're on the very last item (when there's the bottom right counter on the other windows)
+        if (index >= itemsSize - 1) return getMaxRowOffset(itemsSize);
 
-        if (index >= itemsSize - 1) return Mth.positiveCeilDiv(Math.min(index, itemsSize - 2) - lastIndexOfInitialWindow, config().columns);
-
-        // rowOffset 1 maps to base, rowOffset 2 maps to base + COLUMNS, etc.
+        // Starting from the end of the initial window, we increase by 1 every config().columns steps.
         return (Mth.positiveCeilDiv(index - lastIndexOfInitialWindow, config().columns));
     }
 
+    // Computes the latest row offset the index can be on, resulting in the item itself showing on the top row of the current window.
+    public static int getLatestRowOffsetFromIndex(int itemsSize, int index) {
+        // If all slots fit onto the tooltip
+        if(itemsSize <= config().maxSlots()) return 0;
+
+        // If we're on the very last window. -1 is for the top left counter.
+        if (index >= itemsSize - (config().maxSlots() - 1)) return getMaxRowOffset(itemsSize);
+
+        // Calculates how many items there are on the first row, including the first item of the second row, where the top left counter would be usually
+        int firstRowItems = ((itemsSize - 1) % config().columns) + 2;
+
+        // If we are in that first row, we must be on the topmost window only
+        if (index < firstRowItems) return 0;
+
+        // Starting from the end of the first row, we increase by 1 every config().columns steps. (firstRowItems is 1-based)
+        return Mth.positiveCeilDiv(index - (firstRowItems - 1), config().columns);
+    }
+
+    // Computes the most amount of row offsets that can occur in a given bundle
     public static int getMaxRowOffset(int totalItems) {
         return Mth.positiveCeilDiv(Math.max(0, totalItems - config().maxSlots()), config().columns);
     }
 
-    public static int getItemsToShowStart(BundleContents bundleContents) {
+    // The following two getter methods calculate the start and end index of the currently visible window on the fly, preventing stale values.
+
+    public static int getItemsToShowStart(int bundleContentsSize) {
         // Always 0 if no scroll has been performed yet
         if (rowOffset <= 0 ) {
             return 0;
@@ -65,7 +88,7 @@ public class BundleRenderContext {
                 The initial offset above already accounts for the first row scrolled down.
                 Example: from 2-5 to 6-9 with rowOffset == 2, and 10-13 with rowOffset == 3
             */
-            return (((bundleContents.size() - 1) % config().columns) + 2) + Math.max(0, rowOffset - 1) * config().columns;
+            return (((bundleContentsSize - 1) % config().columns) + 2) + Math.max(0, rowOffset - 1) * config().columns;
             /*
             What itemsToShowStart can look like, with an example with 4 Rows and 4 Columns:
             Items | Modulo | rowOffset | Result    |
@@ -83,10 +106,10 @@ public class BundleRenderContext {
         }
     }
 
-    public static int getItemsToShowEnd(BundleContents bundleContents, int numberOfItemsToShow){
+    public static int getItemsToShowEnd(int bundleContentsSize, int numberOfItemsToShow){
         // Simply takes itemsToShowStart and the offset of the items shown, but reduced by one since the list where Start and End are used in is 0-indexed.
         // That way both values are included in the list.
-        return getItemsToShowStart(bundleContents) + numberOfItemsToShow - 1;
+        return getItemsToShowStart(bundleContentsSize) + numberOfItemsToShow - 1;
     }
 
     // Manual BundleContents' static getWeight replication since overwritten static method calls across mixin classes don't work. So putting it here instead.

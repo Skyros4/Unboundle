@@ -3,7 +3,7 @@
 	"id": "unboundle",
 	"version": "${version}",
 	"name": "Unboundle",
-	"description": "Realizes the unused potential of Vanilla's bundles. Access all items in the bundle with the now dynamic tooltip! Place items directly from the bundle into the world!",
+	"description": "What vanilla's bundle could have been. Manage your items more effectively with a dynamic tooltip. Place them directly from the bundle into the world.",
 	"authors": [
 		"Skyros4"
 	],

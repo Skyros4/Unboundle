@@ -1,14 +1,15 @@
 package unboundle.mixin;
 
-import unboundle.BundleConfig;
+import com.llamalad7.mixinextras.sugar.Local;
+import net.minecraft.network.chat.Component;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import unboundle.BundleRenderContext;
-import me.shedaniel.autoconfig.AutoConfig;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.BundleContents;
-import org.apache.commons.lang3.math.Fraction;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.*;
@@ -23,97 +24,94 @@ public class BundleContentsMutableMixin {
     @Shadow @Final
     private List<ItemStack> items;
     @Shadow
-    private Fraction weight;
-    @Shadow
     private int selectedItem;
-
-    @Unique
-    private boolean insertedWithBundleHeld = false;
-
-//    @Unique
-//    private BundleConfig config() {
-//        return AutoConfig.getConfigHolder(BundleConfig.class).getConfig();
-//    }
 
     // Across this class there will be commented out Logger statements, for easier debugging.
     @Unique
     private static final Logger LOGGER = LoggerFactory.getLogger(Unboundle.MOD_ID);
 
-    @Shadow
-    private int findStackIndex(ItemStack itemStack) {
-        return 0;
+    // When adding an item to the bundle, and there's already an item of the same type already present in there,
+    // preserve the position of the latter instead of moving that item to the front.
+    @ModifyArg(
+            method = "tryInsert(Lnet/minecraft/world/item/ItemStack;)I",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Ljava/util/List;add(ILjava/lang/Object;)V",
+                    ordinal = 0
+            ),
+            index = 0
+    )
+    private int tryInsert$undoResetPositionForExistingItem(int zero, @Local(ordinal = 1) int indexOfSameItem // == j in deobfuscated code
+    ) {
+        return indexOfSameItem;
     }
+    // When adding an item to the bundle, and there's already an item of the same type already present in there,
+    // automatically select the slot of the latter.
+    // Also make sure that that slot becomes visible in the current window.
+    @Inject(
+            method = "tryInsert(Lnet/minecraft/world/item/ItemStack;)I",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Ljava/util/List;add(ILjava/lang/Object;)V",
+                    ordinal = 0, // First instance of this.items.add
+                    shift = At.Shift.AFTER // after the method
+            )
+    )
+    public void tryInsert$goToExistingItem(ItemStack itemStack, CallbackInfoReturnable<Integer> cir,
+        @Local(ordinal = 1) int indexOfSameItem  // == j in deobfuscated code
+    ) {
+        if (this.selectedItem != -1) {
+            // If the item stack the new item is supposed to be added to is...
 
-    @Shadow
-    private int getMaxAmountToAdd(ItemStack itemStack) {
-        return 0;
-    }
-
-    /**
-     * @author Skyros4
-     * @reason ToDo
-     */
-    @Overwrite
-    public int tryInsert(ItemStack itemStackToInsert) {
-
-        if (!BundleContents.canItemBeInBundle(itemStackToInsert)) return 0;
-
-        // The
-        int countToBeAdded = Math.min(itemStackToInsert.getCount(), this.getMaxAmountToAdd(itemStackToInsert));
-        if (countToBeAdded == 0) return 0;
-
-        this.weight = this.weight.add(BundleRenderContext.getWeight(itemStackToInsert).multiplyBy(Fraction.getFraction(countToBeAdded, 1)));
-        // This gets the index of the same item type in the bundle, if the item is present there already.
-        int indexOfSameItem = this.findStackIndex(itemStackToInsert);
-        if (indexOfSameItem != -1) {
-            // Takes the items of the same type out of the bundle
-            ItemStack itemStack2 = (ItemStack) this.items.remove(indexOfSameItem);
-            // Create a new item of the same type that adds the two counts together
-            ItemStack itemStack3 = itemStack2.copyWithCount(itemStack2.getCount() + countToBeAdded);
-            // Removes from the mouse pointer how much of the item fits into the bundle, and the rest is left over at the mouse pointer.
-            itemStackToInsert.shrink(countToBeAdded);
-            // Adds the updated item stack back to right where it was
-            this.items.add(indexOfSameItem, itemStack3);
-            if (this.selectedItem != -1 && !insertedWithBundleHeld) {
-//                System.out.println(BundleRenderContext.getRowOffsetFromIndex(items.size(), indexOfSameItem));
-                BundleRenderContext.rowOffset = BundleRenderContext.getRowOffsetFromIndex(items.size(), indexOfSameItem);
-                if (this.items.size() % BundleRenderContext.config().columns == 1) BundleRenderContext.rowOffset--;
-                this.toggleSelectedItem(indexOfSameItem);
+            // ... after the current window, update the window so that the earliest window is shown where the item is visible,
+            // making it look like it was automatically scrolled down to
+            if (BundleRenderContext.getItemsToShowEnd(this.items.size(), this.toImmutable().getNumberOfItemsToShow()) < indexOfSameItem) {
+                BundleRenderContext.rowOffset = BundleRenderContext.getEarliestRowOffsetFromIndex(items.size(), indexOfSameItem);
             }
-        } else {
-            int itemInsertedIndex = Math.min(selectedItem + 1, this.items.size());
-            this.items.add(itemInsertedIndex, itemStackToInsert.split(countToBeAdded));
-            if (this.selectedItem != -1 && !insertedWithBundleHeld) {
-                this.toggleSelectedItem(itemInsertedIndex);
+            // ... before the current window, update the window so that the latest window is shown where the item is visible,
+            // making it look like it was automatically scrolled up to
+            else if (BundleRenderContext.getItemsToShowStart(this.items.size()) > indexOfSameItem) {
+                BundleRenderContext.rowOffset = BundleRenderContext.getLatestRowOffsetFromIndex(items.size(), indexOfSameItem);
             }
+            // ... otherwise just stay in the current window if the targeted slot is visible already
+
+            this.toggleSelectedItem(indexOfSameItem);
         }
-
-        if(this.items.size() % BundleRenderContext.config().columns == 1 && selectedItem > 1) {
-//            BundleRenderContext.rowOffset = Math.min(BundleRenderContext.rowOffset, BundleRenderContext.getMaxRowOffset(this.items.size()));
+    }
+    // When adding a new item to the bundle, add it right where the selectedItem cursor pointed to, not at the beginning.
+    @ModifyArg(
+            method = "tryInsert(Lnet/minecraft/world/item/ItemStack;)I",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Ljava/util/List;add(ILjava/lang/Object;)V",
+                    ordinal = 1
+            ),
+            index = 0
+    )
+    private int tryInsert$undoResetPositionForNewItem(int zero) {
+        return Math.min(selectedItem + 1, this.items.size());
+    }
+    // When adding a new item to the bundle, automatically select the slot of the item just added.
+    // Also, if inserting causes a new topmost row with just 1 item in it to appear, shift the rowOffset accordingly.
+    @Inject(
+            method = "tryInsert(Lnet/minecraft/world/item/ItemStack;)I",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Ljava/util/List;add(ILjava/lang/Object;)V",
+                    ordinal = 1, // Second instance of this.items.add
+                    shift = At.Shift.AFTER // after the method
+            )
+    )
+    public void tryInsert$goToNewItem(ItemStack itemStack, CallbackInfoReturnable<Integer> cir) {
+        int itemInsertedIndex = Math.min(selectedItem + 1, this.items.size());
+        // Usually when inserting a new item, the rowOffset is not changed because you are already on the correct window as you insert the item.
+        // However, here this is done because you can change the amount of rowOffsets by creating a new top row with just 1 item in it, in which case we just increase the rowOffset by 1.
+        if(this.items.size() % BundleRenderContext.config().columns == 1 && selectedItem > 0) {
             BundleRenderContext.rowOffset = Math.min(BundleRenderContext.rowOffset + 1, BundleRenderContext.getMaxRowOffset(this.items.size()));
-//            System.out.println(BundleRenderContext.rowOffset + " " + BundleRenderContext.getMaxRowOffset(this.items.size()));
         }
-
-//        LOGGER.info("tryInsert | selectedItem: {} | itemInsertedIndex: {} | getRowOffsetFromIndex: {}", selectedItem, Math.min(selectedItem + 1, this.items.size()),
-//                BundleRenderContext.getRowOffsetFromIndex(items, indexOfSameItem));
-
-        return countToBeAdded;
-    }
-
-    /**
-     * @author Skyros4
-     * @reason ToDo
-     */
-    @Overwrite
-    public int tryTransfer(Slot slot, Player player) {
-        ItemStack itemStack = slot.getItem();
-        int i = this.getMaxAmountToAdd(itemStack);
-        if (!BundleContents.canItemBeInBundle(itemStack)) return 0;
-//        System.out.println("TRANSFER");
-        insertedWithBundleHeld = true;
-        int result = this.tryInsert(slot.safeTake(itemStack.getCount(), i, player));
-        insertedWithBundleHeld = false;
-        return result;
+        if (this.selectedItem != -1) {
+            this.toggleSelectedItem(itemInsertedIndex);
+        }
     }
 
     @Shadow
@@ -122,34 +120,32 @@ public class BundleContentsMutableMixin {
     }
 
     @Shadow
-    private boolean indexIsOutsideAllowedBounds(int i) {
-        return false;
+    public BundleContents toImmutable() {
+        return null;
     }
 
-    /**
-     * @author Skyros4
-     * @reason ToDo
-     */
-    @Overwrite @Nullable
-    public ItemStack removeOne() {
-        if (this.items.isEmpty()) {
-            return null;
-        } else {
-            int i = this.indexIsOutsideAllowedBounds(this.selectedItem) ? 0 : this.selectedItem;
-            ItemStack itemStack = ((ItemStack)this.items.remove(i)).copy();
-            this.weight = this.weight.subtract(BundleRenderContext.getWeight(itemStack).multiplyBy(Fraction.getFraction(itemStack.getCount(), 1)));
-            if (this.selectedItem > 0) {
-                this.toggleSelectedItem(this.selectedItem - 1);
-            }
-
-            if(this.items.size() % BundleRenderContext.config().columns == 0 && selectedItem != -1){
-//                BundleRenderContext.rowOffset = Math.min(BundleRenderContext.rowOffset, BundleRenderContext.getMaxRowOffset(this.items.size()));
-                BundleRenderContext.rowOffset = Math.max(BundleRenderContext.rowOffset - 1, 0);
-//                BundleRenderContext.rowOffset = Math.min(BundleRenderContext.rowOffset - 1, BundleRenderContext.getMaxRowOffset(this.items.size()));
-//                System.out.println(BundleRenderContext.rowOffset);
-            }
-
-            return itemStack;
+    // Leaves the selection cursor where it was after removing an item
+    @Redirect(
+            method = "removeOne()Lnet/minecraft/world/item/ItemStack;",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/item/component/BundleContents$Mutable;toggleSelectedItem(I)V"
+            )
+    )
+    public void removeOne$toggleSelectedItem(BundleContents.Mutable instance, int i) {
+        if (this.selectedItem >= 0) {
+            this.toggleSelectedItem(this.selectedItem - 1);
         }
     }
+    // If removing causes a row to disappear, update the rowOffset accordingly
+    @Inject(
+            method = "removeOne()Lnet/minecraft/world/item/ItemStack;",
+            at = @At("RETURN")
+    )
+    private void removeOne$handleOneLessRow(CallbackInfoReturnable<Component> cir) {
+        if(this.items.size() % BundleRenderContext.config().columns == 0 && selectedItem != -1){
+            BundleRenderContext.rowOffset = Math.max(BundleRenderContext.rowOffset - 1, 0);
+        }
+    }
+
 }

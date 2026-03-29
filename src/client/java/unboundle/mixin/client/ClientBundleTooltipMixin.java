@@ -2,9 +2,12 @@ package unboundle.mixin.client;
 
 import java.util.List;
 
-import unboundle.BundleConfig;
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import unboundle.BundleRenderContext;
-import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientBundleTooltip;
@@ -15,7 +18,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.BundleContents;
 import org.apache.commons.lang3.math.Fraction;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.*;
@@ -25,8 +27,6 @@ import unboundle.Unboundle;
 public class ClientBundleTooltipMixin {
 
     @Shadow @Final
-    private static ResourceLocation PROGRESSBAR_BORDER_SPRITE;
-    @Shadow @Final
     private static ResourceLocation SLOT_HIGHLIGHT_BACK_SPRITE;
     @Shadow @Final
     private static ResourceLocation SLOT_HIGHLIGHT_FRONT_SPRITE;
@@ -35,19 +35,12 @@ public class ClientBundleTooltipMixin {
 
     // Can now be easily changed. However, the item icons still remain the same size and in the top left of the slot.
     // To interfere with that, a deep dive into item icon rendering would be required.
-    // Also, if you were to change the slot size for bundles, you'd ideally try to make that consistent with allItems of Minecraft's UI,
+    // Also, if you were to change the slot size for bundles, you'd ideally try to make that consistent with all of Minecraft's UI,
     // making EVERY slot that size. Not worth the effort for now.
     @Mutable @Shadow @Final
     private static int SLOT_MARGIN;
     @Mutable @Shadow @Final
     private static int SLOT_SIZE;
-
-//    @Mutable @Shadow @Final
-//    private static int GRID_WIDTH;
-//    @Mutable @Shadow @Final
-//    private static int PROGRESSBAR_WIDTH;
-//    @Mutable @Shadow @Final
-//    private static int PROGRESSBAR_FILL_MAX;
 
     @Unique
     private static int gridWidth;
@@ -66,51 +59,24 @@ public class ClientBundleTooltipMixin {
     private static int PROGRESSBAR_MARGIN_Y;
 
     @Shadow @Final
-    private static Component BUNDLE_FULL_TEXT;
-    @Shadow @Final
-    private static Component BUNDLE_EMPTY_TEXT;
-    @Shadow @Final
-    private static Component BUNDLE_EMPTY_DESCRIPTION;
-    @Shadow @Final
     private BundleContents contents;
-
-//    @Unique
-//    private BundleConfig config() {
-//        return AutoConfig.getConfigHolder(BundleConfig.class).getConfig();
-//    }
 
     // Across this class there will be commented out Logger statements, for easier debugging.
     @Unique
     private static final Logger LOGGER = LoggerFactory.getLogger(Unboundle.MOD_ID);
 
-//    // When the ClientBundleTooltip class first loads, <clinit> is the part where the static final fields are initialized.
-//    // This injects right at the end of the window where these fields are editable, after that these fields are set in stone.
-//    @Inject(method = "<clinit>", at = @At("TAIL"))
-//    private static void modifySlotConstants(CallbackInfo ci) {
-//        // Controls the width of the grid space within the UI background where the slots are sitting in.
-//        GRID_WIDTH = config.columns * SLOT_SIZE;
-//        // Adapts to amount of columns as well
-//        PROGRESSBAR_WIDTH = GRID_WIDTH;
-//        PROGRESSBAR_FILL_MAX = PROGRESSBAR_WIDTH - 2;
-//
-//        setTooltipWidth(GRID_WIDTH);
-//    }
-
     @Unique
     private static void setTooltipWidth(int width) {
         gridWidth = width;
         progressBarWidth = gridWidth;
-        progressBarFillMax = progressBarWidth - 2;
+        progressBarFillMax = progressBarWidth - (2 * PROGRESSBAR_BORDER);
     }
 
-
-    /**
-     * @author Skyros4
-     * @reason Replaces hardcoded value to provide support for a flexible configuration of the grid width.
-     *         Also allows the tooltip width to dynamically adapt to the current amount of unique items in the bundle, from 4 (default value) to COLUMNS.
-     */
-    @Overwrite
-    public int getWidth(Font font) {
+    // Replaces hardcoded value to provide support for a flexible configuration of the grid width.
+    // Also allows the tooltip width to dynamically adapt to the current amount of unique items in the bundle,
+    // from 4 (default value needed for the empty bundle) to COLUMNS.
+    @ModifyConstant(method = "getWidth(Lnet/minecraft/client/gui/Font;)I", constant = @Constant(intValue = 96))
+    public int dynamicWidth(int original) {
         int size = this.contents.size();
         if (size == 0) {
             setTooltipWidth(4 * SLOT_SIZE);
@@ -122,90 +88,76 @@ public class ClientBundleTooltipMixin {
         return gridWidth;
     }
 
-//    /**
-//     * UNCOMMENT IF PROGRESSBAR HEIGHT IS TOUCHED.
-//     * @author Skyros4
-//     * @reason Replaces hardcoded values to provide support for a flexible configuration of the progress bar height.
-//     */
-//    @Overwrite
-//    private static int getEmptyBundleBackgroundHeight(Font font) {
-//        return getEmptyBundleDescriptionTextHeight(font) + PROGRESSBAR_HEIGHT + 2 * PROGRESSBAR_MARGIN_Y;
-//    }
+    // Replaces hardcoded values to provide support for a flexible configuration of the progress bar height. Useful if that is touched.
+    @ModifyConstant(method = "getEmptyBundleBackgroundHeight(Lnet/minecraft/client/gui/Font;)I", constant = @Constant(intValue = 13))
+    private static int getEmptyBundleBackgroundHeight$dynamicHeight(int original) {
+        return PROGRESSBAR_HEIGHT;
+    }
+    @ModifyConstant(method = "getEmptyBundleBackgroundHeight(Lnet/minecraft/client/gui/Font;)I", constant = @Constant(intValue = 8))
+    private static int getEmptyBundleBackgroundHeight$dynamicMargin(int original) {
+        return 2 * PROGRESSBAR_MARGIN_Y;
+    }
 
-//    /**
-//     * UNCOMMENT IF PROGRESSBAR HEIGHT IS TOUCHED.
-//     * @author Skyros4
-//     * @reason Replaces hardcoded values to provide support for a flexible configuration of the progress bar height.
-//     */
-//    @Overwrite
-//    private int backgroundHeight() {
-//        return this.itemGridHeight() + PROGRESSBAR_HEIGHT + 2 * PROGRESSBAR_MARGIN_Y;
-//    }
+    // Replaces hardcoded values to provide support for a flexible configuration of the progress bar height and margin. Useful if these are touched.
+    @ModifyConstant(method = "backgroundHeight()I", constant = @Constant(intValue = 13))
+    private static int backgroundHeight$dynamicHeight(int original) {
+        return PROGRESSBAR_HEIGHT;
+    }
+    @ModifyConstant(method = "backgroundHeight()I", constant = @Constant(intValue = 8))
+    private static int backgroundHeight$dynamicMargin(int original) {
+        return 2 * PROGRESSBAR_MARGIN_Y;
+    }
 
-//    /**
-//     * UNCOMMENT IF SLOT SIZE IS TOUCHED.
-//     * @author Skyros4
-//     * @reason Replaces hardcoded values to provide support for a flexible configuration of the slot size.
-//     */
-//    @Overwrite
-//    private int itemGridHeight() {
-//        return this.gridSizeY() * SLOT_SIZE;
-//    }
     @Shadow
     private int itemGridHeight() { return 0; }
-
-    /**
-     * @author Skyros4
-     * @reason Replaces the hardcoded value to provide support for a flexible configuration of the grid width.
-     */
-    @Overwrite
-    private int getContentXOffset(int i) {
-        return (i - gridWidth) / 2;
+    // Replaces hardcoded values to provide support for a flexible configuration of the slot size. Useful if that is touched.
+    @ModifyConstant(method = "itemGridHeight()I", constant = @Constant(intValue = 24))
+    private static int itemGridHeight$dynamicSlotSize(int original) {
+        return SLOT_SIZE;
     }
 
-
-    /**
-     * @author Skyros4
-     * @reason Replaces the hardcoded value to provide support for a flexible configuration of the amount of columns.
-     */
-    @Overwrite
-    private int gridSizeY() {
-        return Mth.positiveCeilDiv(this.slotCount(), BundleRenderContext.config().columns);
+    @Shadow
+    private int getContentXOffset(int i) { return 0; }
+    // Replaces the hardcoded value to provide support for a flexible configuration of the grid width.
+    @ModifyConstant(method = "getContentXOffset(I)I", constant = @Constant(intValue = 96))
+    private static int getContentXOffset$dynamicGridWidth(int original) {
+        return gridWidth;
     }
 
-    /**
-     * @author Skyros4
-     * @reason Replaces the hardcoded value to provide support for a flexible configuration of the maximum amount of slots.
-     */
-    @Overwrite
-    private int slotCount() {
-        return Math.min(BundleRenderContext.config().maxSlots(), this.contents.size());
+    @Shadow
+    private int gridSizeY() { return 0; }
+    // Replaces the hardcoded value to provide support for a flexible configuration of the amount of columns.
+    @ModifyConstant(method = "gridSizeY()I", constant = @Constant(intValue = 4))
+    private static int dynamicColumns(int original) {
+        return BundleRenderContext.config().columns;
     }
 
-//    /**
-//     * UNCOMMENT IF PROGRESSBAR HEIGHT IS TOUCHED.
-//     * @author Skyros4
-//     * @reason Replaces the hardcoded value to provide support for a flexible configuration of the progress bar height.
-//     */
-//    @Overwrite
-//    private void renderEmptyBundleTooltip(Font font, int slotIndex, int j, int k, int l, GuiGraphics guiGraphics) {
-//        drawEmptyBundleDescriptionText(slotIndex + this.getContentXOffset(k), j, font, guiGraphics);
-//        this.drawProgressbar(slotIndex + this.getContentXOffset(k), j + getEmptyBundleDescriptionTextHeight(font) + PROGRESSBAR_MARGIN_Y, font, guiGraphics);
-//    }
+    // Replaces the hardcoded value to provide support for a flexible configuration of the maximum amount of slots.
+    @ModifyConstant(method = "slotCount()I", constant = @Constant(intValue = 12))
+    private static int dynamicMaxSlots(int original) {
+        return BundleRenderContext.config().maxSlots();
+    }
+
+    // Replaces the hardcoded value to provide support for a flexible configuration of the progress bar margin. Useful if that is touched.
+    @ModifyConstant(method = "renderEmptyBundleTooltip(Lnet/minecraft/client/gui/Font;IIIILnet/minecraft/client/gui/GuiGraphics;)V", constant = @Constant(intValue = 4))
+    private static int renderEmptyBundleTooltip$dynamicMargin(int original) {
+        return PROGRESSBAR_MARGIN_Y;
+    }
 
     /**
      * @author Skyros4
      * @reason Replaces the hardcoded values to provide support for a flexible configuration of the slot size and the amount of columns.
      *         Furthermore, adds support for the top left counter when scrolling rows.
+     *         WrapMethod is used as I haven't found a clean way to add a new elseif for shouldRenderSurplusTextTopLeft otherwise.
      */
-    @Overwrite
-    private void renderBundleWithItemsTooltip(Font font, int i, int j, int k, int l, GuiGraphics guiGraphics) {
-        // Contains a sublist of this.contents, with the items indexTo be currently displayed
+    @WrapMethod(method = "renderBundleWithItemsTooltip(Lnet/minecraft/client/gui/Font;IIIILnet/minecraft/client/gui/GuiGraphics;)V")
+    private void addTopLeftCounter(Font font, int i, int j, int k, int l, GuiGraphics guiGraphics, Operation<Void> original) {
+        // Contains a sublist of this.contents, with the items to be currently displayed
         List<ItemStack> list = this.getShownItems(this.contents.getNumberOfItemsToShow());
 
         // These two booleans control whether the top left and bottom right counter should be rendered
-        int itemsToShowStart = BundleRenderContext.getItemsToShowStart(this.contents);
-        int itemsToShowEnd = BundleRenderContext.getItemsToShowEnd(this.contents, this.contents.getNumberOfItemsToShow());
+        int itemsToShowStart = BundleRenderContext.getItemsToShowStart(this.contents.size());
+        int itemsToShowEnd = BundleRenderContext.getItemsToShowEnd(this.contents.size(), this.contents.getNumberOfItemsToShow());
         boolean hiddenAbove = itemsToShowStart > 0;
         // + 1 because the former is 0-indexed and the latter 1-indexed
         boolean hiddenBelow = itemsToShowEnd + 1 < this.contents.size();
@@ -248,14 +200,18 @@ public class ClientBundleTooltipMixin {
         this.drawProgressbar(i + this.getContentXOffset(k), j + this.itemGridHeight() + SLOT_MARGIN, font, guiGraphics);
     }
 
+    @Shadow
+    private List<ItemStack> getShownItems(int numberOfItemsToShow) {
+        return null;
+    }
     /**
      * @author Skyros4
      * @reason Now dynamically moves the subsection of items to show through the entire list of contents of the bundle as you scroll through it
      */
-    @Overwrite
-    private List<ItemStack> getShownItems(int numberOfItemsToShow) {
-        int itemsToShowStart = BundleRenderContext.getItemsToShowStart(this.contents);
-        int itemsToShowEnd = BundleRenderContext.getItemsToShowEnd(this.contents, numberOfItemsToShow);
+    @WrapMethod(method = "getShownItems(I)Ljava/util/List;")
+    private List<ItemStack> dynamicItemWindows(int numberOfItemsToShow, Operation<List<ItemStack>> original) {
+        int itemsToShowStart = BundleRenderContext.getItemsToShowStart(this.contents.size());
+        int itemsToShowEnd = BundleRenderContext.getItemsToShowEnd(this.contents.size(), numberOfItemsToShow);
 
 //        LOGGER.info("numberOfItemsToShow: {} | itemsToShowStart: {} | itemsToShowEnd: {}",
 //                    numberOfItemsToShow, itemsToShowStart, itemsToShowEnd);
@@ -275,39 +231,44 @@ public class ClientBundleTooltipMixin {
     @Shadow
     private static boolean shouldRenderItemSlot(List<ItemStack> list, int i) { return false; }
 
-    /**
-     * @author Skyros4
-     * @reason Adjusts the amount of hidden items below to become smaller as you scroll down rows.
-     */
-    @Overwrite
+    @Shadow
     private int getAmountOfHiddenItems(List<ItemStack> list) {
-        // For skip(), the index parameter is excluded, hence the +1. itemsToShowEnd itself also needs to be skipped.
+        return 0;
+    }
+    // Adjusts the amount of hidden items below to become smaller as you scroll down rows.
+    @ModifyReturnValue(
+            method = "getAmountOfHiddenItems(Ljava/util/List;)I",
+            at = @At("RETURN")
+    )
+    private int getAmountOfHiddenItems$considerRowScrolls(int original) {
         return this.contents.itemCopyStream()
-                .skip(BundleRenderContext.getItemsToShowEnd(this.contents, this.contents.getNumberOfItemsToShow()) + 1)
+                .skip(BundleRenderContext.getItemsToShowEnd(this.contents.size(), this.contents.getNumberOfItemsToShow()) + 1)
                 .mapToInt(ItemStack::getCount)
                 .sum();
     }
-
     // Adjusts the amount of hidden items above to become bigger as you scroll down rows.
     @Unique
     private int getAmountOfHiddenItemsForTopLeft(List<ItemStack> list) {
         return this.contents.itemCopyStream()
-                .limit(BundleRenderContext.getItemsToShowStart(this.contents))
+                .limit(BundleRenderContext.getItemsToShowStart(this.contents.size()))
                 .mapToInt(ItemStack::getCount)
                 .sum();
     }
 
+    @Shadow
+    private void renderSlot(int slotIndex, int j, int k, List<ItemStack> list, int slotIndex2, Font font, GuiGraphics guiGraphics) {}
     /**
      * @author Skyros4
-     * @reason Adds shadows to 16-stackables and unstackables to make them subtly visually distinct from the usual 64-stackable items
+     * @reason Adds shadows to 16-stackables and unstackables to make them subtly visually distinct from the usual 64-stackable items.
+     *         Also replaces the hardcoded values to provide support for a flexible configuration of the bundle tooltip.
      */
-    @Overwrite
-    private void renderSlot(int slotIndex, int j, int k, List<ItemStack> list, int slotIndex2, Font font, GuiGraphics guiGraphics) {
+    @WrapMethod(method = "renderSlot(IIILjava/util/List;ILnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphics;)V")
+    private void addShadows(int slotIndex, int j, int k, List<ItemStack> list, int slotIndex2, Font font, GuiGraphics guiGraphics, Operation<Void> original) {
         // Because the items are run through from bottom right to top left, we once again reverse the order here to make the coordinates match up.
         // topLeftSlotIndex represents the index of the current item to render the slot and item icon for, from top left to bottom right.
         // Example: In a 4x4 grid with 16 items, the top left one has a slotIndex of 15, so topLeftSlotIndex is 1 - the first item starting from top left.
         int topLeftSlotIndex = list.size() - slotIndex;
-        int itemsToShowStart = BundleRenderContext.getItemsToShowStart(this.contents);
+        int itemsToShowStart = BundleRenderContext.getItemsToShowStart(this.contents.size());
         // The index of the currently rendered slot + offset from potential scrolls is compared to the selectedItem. If yes, make it brighter.
         boolean isSelected = topLeftSlotIndex + itemsToShowStart == this.contents.getSelectedItem();
         // The item data itself to render into the slot.
@@ -341,90 +302,159 @@ public class ClientBundleTooltipMixin {
         }
     }
 
-    /**
-     * @author Skyros4
-     * @reason Replaces the hardcoded value to provide support for a flexible configuration of the slot size.
-     *         Furthermore, center the counter text vertically instead of two pixels too low.
-     */
-    @Overwrite
-    private static void renderCount(int i, int j, int count, Font font, GuiGraphics guiGraphics) {
+    @Shadow
+    private static void renderCount(int i, int j, int count, Font font, GuiGraphics guiGraphics) {}
+    // Replaces the hardcoded value to provide support for a flexible configuration of the slot size. Useful if that is touched.
+    @ModifyConstant(method = "renderCount(IIILnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphics;)V", constant = @Constant(intValue = 12))
+    private static int renderCount$dynamicSlotSize(int original) {
+        return SLOT_SIZE / 2;
+    }
+    // Furthermore, center the counter text vertically instead of two pixels too low.
+    @ModifyConstant(method = "renderCount(IIILnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphics;)V", constant = @Constant(intValue = 10))
+    private static int renderCount$dynamicTextCentering(int original) {
         // Minecraft's text is 8 pixels high by default.
-        // j + ((SLOT_SIZE) / 2) - 4: First center vertically, then go back up half the text height to land at the top of the text where rendering occurs
-        guiGraphics.drawCenteredString(font, "+" + count, i + SLOT_SIZE / 2, j + ((SLOT_SIZE) / 2) - 4, -1);
+        // First center vertically, then go back up half the text height to land at the top of the text where rendering occurs
+        return ((SLOT_SIZE) / 2) - 4;
     }
 
     @Shadow
     private void drawSelectedItemTooltip(Font font, GuiGraphics guiGraphics, int i, int j, int k) {}
 
-    /**
-     * @author Skyros4
-     * @reason Replaces the hardcoded values to provide support for a flexible configuration of the progress bar dimensions.
-     */
-    @Overwrite
-    private void drawProgressbar(int i, int j, Font font, GuiGraphics guiGraphics) {
-        // This math allows the blue progress meter within to shrink based on the border thickness in order to not clip through the border
-        // (i + PROGRESSBAR_BORDER, (j - 1) + PROGRESSBAR_BORDER) is the top left corner in the second column of pixels of the border.
-        // So the second upper top left corner, not the first lower top left corner.
-        // The discrepancy between i and j - 1:
-        // On the i side this is because if the bundle is empty, the width (i) needs to be 0 in order to not show the one pixel width behind the border.
-        // And on the j side, if the bundle contains items, the right end of the blue progress meter needs to be flat,
-        // aka the rounded corners from the texture need to be hidden by the border, hence the start one unit up.
-        // And the 2 in (2 * (PROGRESSBAR_BORDER - 1)) accounts for the top and bottom border pixels.
-        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, this.getProgressBarTexture(), i + PROGRESSBAR_BORDER, (j - 1) + PROGRESSBAR_BORDER, this.getProgressBarFill() - (PROGRESSBAR_BORDER - 1), PROGRESSBAR_HEIGHT - 2 * (PROGRESSBAR_BORDER - 1));
-        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, PROGRESSBAR_BORDER_SPRITE, i, j, progressBarWidth, PROGRESSBAR_HEIGHT);
-        Component component = this.getProgressBarFillText();
-        if (component != null) {
-            guiGraphics.drawCenteredString(font, component, i + (progressBarWidth / 2), j + 3, -1);
-        }
-    }
-
-    /**
-     * @author Skyros4
-     * @reason Replaces the hardcoded value to provide support for a flexible configuration of the progress bar width.
-     */
-    @Overwrite
-    private static void drawEmptyBundleDescriptionText(int i, int j, Font font, GuiGraphics guiGraphics) {
-        guiGraphics.drawWordWrap(font, BUNDLE_EMPTY_DESCRIPTION, i, j, progressBarWidth, -5592406);
-    }
-
-    /**
-     * @author Skyros4
-     * @reason Replaces the hardcoded value to provide support for a flexible configuration of the progress bar width.
-     *         Also, the 9 at the end stands for the text height + 1 pixel of space, per line.
-     */
-    @Overwrite
-    private static int getEmptyBundleDescriptionTextHeight(Font font) {
-        return font.split(BUNDLE_EMPTY_DESCRIPTION, progressBarWidth).size() * 9;
-    }
-
-    /**
-     * @author Skyros4
-     * @reason Replaces the hardcoded value to provide support for a flexible configuration of the progress bar width and therefore maximum fill width.
-     */
-    @Overwrite
-    private int getProgressBarFill() {
-        return Mth.clamp(Mth.mulAndTruncate(this.contents.weight(), progressBarFillMax), 0, progressBarFillMax);
-    }
-
     @Shadow
-    private ResourceLocation getProgressBarTexture() {
-        return null;
+    private void drawProgressbar(int i, int j, Font font, GuiGraphics guiGraphics) {}
+    // Replaces the hardcoded values to provide support for a flexible configuration of the progress bar dimensions.
+    // The following replacements allow the blue progress meter within to shrink/grow based on the border thickness in order to not clip through the border.
+    // Relevant for the progress bar width, and useful if the other dimensions are touched.
+
+    // (i + PROGRESSBAR_BORDER, (j - 1) + PROGRESSBAR_BORDER) is the top left corner in the second column of pixels of the border.
+    // So the second upper top left corner, not the first lower top left corner.
+    // The discrepancy between i and j - 1:
+    // On the i side this is because if the bundle is empty, the width (i) needs to be 0 in order to not show the one pixel width behind the border.
+    // And on the j side, if the bundle contains items, the right end of the blue progress meter needs to be flat,
+    // aka the rounded corners from the texture need to be hidden by the border, hence the start one unit up.
+    @ModifyArg(
+            method = "drawProgressbar(IILnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphics;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIII)V",
+                    ordinal = 0
+            ),
+            index = 2
+    )
+    private int drawProgressbar$BlitSprite$dynamicI(int i) {
+        // undoing the "+ 1" before adding PROGRESSBAR_BORDER
+        return (i - 1) + PROGRESSBAR_BORDER;
+    }
+    @ModifyArg(
+            method = "drawProgressbar(IILnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphics;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIII)V",
+                    ordinal = 0
+            ),
+            index = 3
+    )
+    private int drawProgressbar$BlitSprite$dynamicJ(int j) {
+        return (j - 1) + PROGRESSBAR_BORDER;
     }
 
-    /**
-     * @author Skyros4
-     * @reason Adds the weight value to the progress bar if the bundle is partially filled.
-     */
-    @Overwrite @Nullable
-    private Component getProgressBarFillText() {
-        if (this.contents.isEmpty()) {
-            return BUNDLE_EMPTY_TEXT;
-        } else if (this.contents.weight().compareTo(Fraction.ONE) >= 0) {
-            return BUNDLE_FULL_TEXT;
-        } else {
-            return Component.literal(String.valueOf(
+    @ModifyArg(
+            method = "drawProgressbar(IILnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphics;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIII)V",
+                    ordinal = 0
+            ),
+            index = 4
+    )
+    private int drawProgressbar$BlitSprite$dynamicProgressBarFill(int getProgressBarFill) {
+        return getProgressBarFill - (PROGRESSBAR_BORDER - 1);
+    }
+    @ModifyArg(
+            method = "drawProgressbar(IILnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphics;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIII)V",
+                    ordinal = 0
+            ),
+            index = 5
+    )
+    private static int drawProgressbar$BlitSprite$dynamicProgressBarFillHeight(int thirteen) {
+        // The 2 accounts for the top and bottom border pixels.
+        return PROGRESSBAR_HEIGHT - 2 * (PROGRESSBAR_BORDER - 1);
+    }
+    @ModifyArg(
+            method = "drawProgressbar(IILnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphics;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIII)V",
+                    ordinal = 1
+            ),
+            index = 4
+    )
+    private static int drawProgressbar$BlitSprite2$dynamicProgressBarWidth(int ninetySix) {
+        return progressBarWidth;
+    }
+    @ModifyArg(
+            method = "drawProgressbar(IILnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphics;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIII)V",
+                    ordinal = 1
+            ),
+            index = 5
+    )
+    private static int drawProgressbar$BlitSprite2$dynamicProgressBarHeight(int thirteen) {
+        return PROGRESSBAR_HEIGHT;
+    }
+    @ModifyArg(
+            method = "drawProgressbar(IILnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphics;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/GuiGraphics;drawCenteredString(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;III)V",
+                    ordinal = 0
+            ),
+            index = 2
+    )
+    private static int drawProgressbar$CenteredString$dynamicI(int i) {
+        // undoing the "+ 48" before adding PROGRESSBAR_BORDER
+        return i - 48 + (progressBarWidth / 2);
+    }
+
+    // Replaces the hardcoded value to provide support for a flexible configuration of the progress bar width.
+    @ModifyConstant(method = "drawEmptyBundleDescriptionText(IILnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphics;)V", constant = @Constant(intValue = 96))
+    private static int drawEmptyBundleDescriptionText$dynamicProgressBarWidth(int original) {
+        return progressBarWidth;
+    }
+
+    // Replaces the hardcoded value to provide support for a flexible configuration of the progress bar width.
+    @ModifyConstant(method = "getEmptyBundleDescriptionTextHeight(Lnet/minecraft/client/gui/Font;)I", constant = @Constant(intValue = 96))
+    private static int getEmptyBundleDescriptionTextHeight$dynamicProgressBarWidth(int original) {
+        return progressBarWidth;
+    }
+
+    // Replaces the hardcoded value to provide support for a flexible configuration of the progress bar width and therefore maximum fill width.
+    @ModifyConstant(method = "getProgressBarFill()I", constant = @Constant(intValue = 94))
+    private static int getProgressBarFill$dynamicProgressBarMargin(int original) {
+        return progressBarFillMax;
+    }
+
+    // Adds the weight value to the progress bar if the bundle is partially filled.
+    @Inject(
+            method = "getProgressBarFillText()Lnet/minecraft/network/chat/Component;",
+            at = @At("RETURN"),
+            cancellable = true
+    )
+    private void getProgressBarFillText$unboundle(CallbackInfoReturnable<Component> cir) {
+        // Decompiled code.
+//        else {
+//            return this.contents.weight().compareTo(Fraction.ONE) >= 0 ? BUNDLE_FULL_TEXT : null;
+//        }
+        // This intercepts the null being returned, and just replaces that with the weight value
+        if (cir.getReturnValue() == null) {
+            cir.setReturnValue(Component.literal(String.valueOf(
                     Mth.mulAndTruncate(this.contents.weight(), 64)
-            ));
+            )));
         }
     }
 }
