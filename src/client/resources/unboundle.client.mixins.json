@@ -6,7 +6,10 @@
     "AbstractContainerMenuMixin",
     "BundleMouseActionsMixin",
     "ClientBundleTooltipMixin",
-    "CreativeModeInventoryScreenMixin"
+    "CreativeModeInventoryScreenMixin",
+    "LocalPlayerMixin",
+    "MultiPlayerGameModeMixin",
+    "MultiPlayerGameModeMixinAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

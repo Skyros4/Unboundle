@@ -28,7 +28,10 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
     // Covers the last 5% of bundle item interaction cases, as copying items in Creative completely bypasses the AbstractContainerMenu logic.
     @Inject(
             method = "slotClicked(Lnet/minecraft/world/inventory/Slot;IILnet/minecraft/world/inventory/ClickType;)V",
-            at = @At("HEAD")
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/components/EditBox;moveCursorToEnd(Z)V"
+            )
     )
     private void resetScrollState(Slot slot, int i, int j, ClickType clickType, CallbackInfo ci) {
         // If doing the middle click on a bundle item

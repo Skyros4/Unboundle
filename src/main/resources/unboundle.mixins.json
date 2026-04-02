@@ -4,7 +4,9 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "BundleContentsMixin",
-    "BundleContentsMutableMixin"
+    "BundleContentsMutableMixin",
+    "BundleItemMixin",
+    "ServerGamePacketListenerImplMixin"
   ],
   "injectors": {
     "defaultRequire": 1

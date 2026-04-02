@@ -3,7 +3,7 @@ package unboundle;
 import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.Mth;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.Bees;
 import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.level.block.entity.BeehiveBlockEntity;
@@ -122,5 +122,83 @@ public class BundleRenderContext {
             List<BeehiveBlockEntity.Occupant> list = itemStack.getOrDefault(DataComponents.BEES, Bees.EMPTY).bees();
             return !list.isEmpty() ? Fraction.ONE : Fraction.getFraction(1, itemStack.getMaxStackSize());
         }
+    }
+
+    // This is a whitelist for what items are allowed to be used out of a bundle.
+    public static boolean useAllowed(ItemStack stack) {
+        // A more sophisticated way could be checking the DataComponents, such as through stack.get(DataComponents.USE_COOLDOWN);
+        Item item = stack.getItem();
+        return item instanceof BlockItem;
+//                item instanceof AirItem ||
+//                item instanceof ArmorStandItem ||
+//                item instanceof ArrowItem ||
+//                item instanceof AxeItem ||
+//                item instanceof BannerItem ||
+//                item instanceof BedItem ||
+//                item instanceof BlockItem ||
+//                item instanceof BoatItem ||
+//                item instanceof BoneMealItem ||
+//                item instanceof BottleItem ||
+//                item instanceof BowItem ||
+//                item instanceof BrushItem ||
+//                item instanceof BucketItem ||
+//                item instanceof BundleItem ||
+//                item instanceof CompassItem ||
+//                item instanceof CrossbowItem ||
+//                item instanceof DebugStickItem ||
+//                item instanceof DiscFragmentItem ||
+//                item instanceof DoubleHighBlockItem ||
+//                item instanceof DyeItem ||
+//                item instanceof EggItem ||
+//                item instanceof EmptyMapItem ||
+//                item instanceof EndCrystalItem ||
+//                item instanceof EnderEyeItem ||
+//                item instanceof EnderpearlItem ||
+//                item instanceof ExperienceBottleItem ||
+//                item instanceof FireChargeItem ||
+//                item instanceof FireworkRocketItem ||
+//                item instanceof FishingRodItem ||
+//                item instanceof FlintAndSteelItem ||
+//                item instanceof FoodOnAStickItem ||
+//                item instanceof GameMasterBlockItem ||
+//                item instanceof GlowInkSacItem ||
+//                item instanceof HangingEntityItem ||
+//                item instanceof HangingSignItem ||
+//                item instanceof HoeItem ||
+//                item instanceof HoneycombItem ||
+//                item instanceof InkSacItem ||
+//                item instanceof InstrumentItem ||
+//                item instanceof ItemFrameItem ||
+//                item instanceof KnowledgeBookItem ||
+//                item instanceof LeadItem ||
+//                item instanceof LingeringPotionItem ||
+//                item instanceof MaceItem ||
+//                item instanceof MapItem ||
+//                item instanceof MinecartItem ||
+//                item instanceof MobBucketItem ||
+//                item instanceof NameTagItem ||
+//                item instanceof PlaceOnWaterBlockItem ||
+//                item instanceof PlayerHeadItem ||
+//                item instanceof PotionItem ||
+//                item instanceof ProjectileWeaponItem ||
+//                item instanceof ScaffoldingBlockItem ||
+//                item instanceof ShearsItem ||
+//                item instanceof ShieldItem ||
+//                item instanceof ShovelItem ||
+//                item instanceof SignItem ||
+//                item instanceof SmithingTemplateItem ||
+//                item instanceof SnowballItem ||
+//                item instanceof SolidBucketItem ||
+//                item instanceof SpawnEggItem ||
+//                item instanceof SpectralArrowItem ||
+//                item instanceof SplashPotionItem ||
+//                item instanceof SpyglassItem ||
+//                item instanceof StandingAndWallBlockItem ||
+//                item instanceof ThrowablePotionItem ||
+//                item instanceof TippedArrowItem ||
+//                item instanceof TridentItem ||
+//                item instanceof WindChargeItem ||
+//                item instanceof WritableBookItem ||
+//                item instanceof WrittenBookItem
     }
 }

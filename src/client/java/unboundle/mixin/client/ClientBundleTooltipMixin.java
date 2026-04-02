@@ -185,7 +185,7 @@ public class ClientBundleTooltipMixin {
                 }
                 // Checks if we're at the top left slot, and if we need indexTo draw a counter there.
                 else if (shouldRenderSurplusTextTopLeft(hiddenAbove, col, row)) {
-                    renderCount(x, y, this.getAmountOfHiddenItemsForTopLeft(list), font, guiGraphics);
+                    renderCount(x, y, this.getAmountOfHiddenItemsForTopLeft(), font, guiGraphics);
                 }
                 // Otherwise, draw item if we're not at the end of the list already
                 else if (shouldRenderItemSlot(list, slotIndex)){
@@ -248,7 +248,7 @@ public class ClientBundleTooltipMixin {
     }
     // Adjusts the amount of hidden items above to become bigger as you scroll down rows.
     @Unique
-    private int getAmountOfHiddenItemsForTopLeft(List<ItemStack> list) {
+    private int getAmountOfHiddenItemsForTopLeft() {
         return this.contents.itemCopyStream()
                 .limit(BundleRenderContext.getItemsToShowStart(this.contents.size()))
                 .mapToInt(ItemStack::getCount)
@@ -272,7 +272,7 @@ public class ClientBundleTooltipMixin {
         // The index of the currently rendered slot + offset from potential scrolls is compared to the selectedItem. If yes, make it brighter.
         boolean isSelected = topLeftSlotIndex + itemsToShowStart == this.contents.getSelectedItem();
         // The item data itself to render into the slot.
-        ItemStack itemStack = (ItemStack) list.get(topLeftSlotIndex);
+        ItemStack itemStack = list.get(topLeftSlotIndex);
 
         // Purpose of this is to dynamically change shadows for bundles based on their content.
         // Determines the color of the shadow, if the high contrast texture pack is loaded, make it bright instead of dark for better visibility.

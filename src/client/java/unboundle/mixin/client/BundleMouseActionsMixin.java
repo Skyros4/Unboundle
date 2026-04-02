@@ -1,7 +1,6 @@
 package unboundle.mixin.client;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import net.minecraft.util.Mth;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -48,9 +47,6 @@ public class BundleMouseActionsMixin {
         @Local(argsOnly = true, ordinal = 0) double d,
         @Local(argsOnly = true, ordinal = 1) double e
     ) {
-        // the amount of items to be displayed in the current window. Corresponds to j in the deobfuscated code. For Logging purposes, see below
-        int numberOfItemsToShow = BundleItem.getNumberOfItemsToShow(bundleItemStack);
-
         Vector2i vector2i = this.scrollWheelHandler.onMouseScroll(d, e);
         // Determines the direction of the scroll, considering mouses that scroll horizontally if no vertical scroll is detected.
         // The change here is: Cap the scrolling speed. Math.signum detects the sign of vector2i, and returns either 1.0, 0.0 or -1.0 respectively.
@@ -108,10 +104,12 @@ public class BundleMouseActionsMixin {
             this.toggleSelectedBundleItem(bundleItemStack, i, newSelected);
         }
 
+//        // the amount of items to be displayed in the current window. Corresponds to j in the deobfuscated code. For Logging purposes, see below
+//        int numberOfItemsToShow = BundleItem.getNumberOfItemsToShow(bundleItemStack);
 //        // The only difference to currentItemsToShow is that these are computed after the rowOffset has been updated.
 //        // So these represent the new indexes for the window after a row scroll.
-//        int newItemsToShowStart = BundleRenderContext.getItemsToShowStart(bundleContents);
-//        int newItemsToShowEnd = BundleRenderContext.getItemsToShowEnd(bundleContents, bundleContents.getNumberOfItemsToShow());
+//        int newItemsToShowStart = BundleRenderContext.getItemsToShowStart(bundleContents.size());
+//        int newItemsToShowEnd = BundleRenderContext.getItemsToShowEnd(bundleContents.size(), bundleContents.getNumberOfItemsToShow());
 //        LOGGER.info("numberOfItemsToShow: {}->{} | itemsToShowStart: {}->{} | itemsToShowEnd: {}->{} | selected: {}->{} | " +
 //                    "maxRowOffset: {} | aAL: {}, aVL: {}, aAF: {}, aVF: {}",
 //                    numberOfItemsToShow, BundleItem.getNumberOfItemsToShow(bundleItemStack),
