@@ -6,7 +6,7 @@
     "BundleContentsMixin",
     "BundleContentsMutableMixin",
     "BundleItemMixin",
-    "ServerGamePacketListenerImplMixin"
+    "ServerPlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

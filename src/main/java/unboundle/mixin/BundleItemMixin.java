@@ -15,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import unboundle.BundleRenderContext;
 
+// This class runs on both client and server side.
+// The client predicts everything by running the code themselves, then the server does a validation runs and informs the client accordingly.
 @Mixin(BundleItem.class)
 public class BundleItemMixin extends Item{
 
@@ -48,12 +50,11 @@ public class BundleItemMixin extends Item{
 
         // Only items from the whitelist actually get used, the other items are rejected.
         InteractionResult result;
-        if (BundleRenderContext.useAllowed(selectedItem)){
+        if (BundleRenderContext.useAllowed(selectedItem)) {
             result = selectedItem.useOn(selectedItemUseOnContext);
             // If the item placement failed, return without cycling through the items in the bundle
             if (!result.consumesAction()) return result;
-        }
-        else {
+        } else {
             result = InteractionResult.PASS; // allows for the use() fallback
         }
 
