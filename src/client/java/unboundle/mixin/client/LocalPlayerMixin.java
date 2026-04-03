@@ -35,6 +35,7 @@ public class LocalPlayerMixin extends AbstractClientPlayer {
 
         // Otherwise, when the bundle is attempted to be dropped with just the drop key,
         // cancel client-side and let the server handle the actual dropping of the item within the bundle.
+        // The client-side does not do a prediction here.
         return ItemStack.EMPTY;
     }
 }
