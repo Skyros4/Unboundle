@@ -25,14 +25,24 @@ public class ModMenuEntrypoint implements ModMenuApi {
 			general.addEntry(entryBuilder.startIntSlider(
 							Component.translatable("text.autoconfig.unboundle.option.rows"), config.rows, 2, 8)
 					.setDefaultValue(3)
-					.setTooltip(Component.translatable("text.autoconfig.unboundle.option.rows.tooltip"))
+					.setTextGetter(val -> Component.literal(String.valueOf(val)))
 					.setSaveConsumer(val -> config.rows = val)
 					.build());
 			general.addEntry(entryBuilder.startIntSlider(
 							Component.translatable("text.autoconfig.unboundle.option.columns"), config.columns, 4, 8)
 					.setDefaultValue(4)
-					.setTooltip(Component.translatable("text.autoconfig.unboundle.option.columns.tooltip"))
+					.setTextGetter(val -> Component.literal(String.valueOf(val)))
 					.setSaveConsumer(val -> config.columns = val)
+					.build());
+			general.addEntry(entryBuilder.startBooleanToggle(
+							Component.translatable("text.autoconfig.unboundle.option.clickBehaviour"), config.clickBehaviourSeparate)
+					.setDefaultValue(false)
+					.setTooltip(Component.translatable("text.autoconfig.unboundle.option.clickBehaviour.tooltip"),
+								Component.translatable("text.autoconfig.unboundle.option.clickBehaviour.tooltip2"))
+					.setYesNoTextSupplier(val -> val ?
+							Component.translatable("text.autoconfig.unboundle.option.clickBehaviour.buttonYes") :
+							Component.translatable("text.autoconfig.unboundle.option.clickBehaviour.buttonNo"))
+					.setSaveConsumer(val -> config.clickBehaviourSeparate = val)
 					.build());
 
 			// Links the settings to the variables in BundleConfig

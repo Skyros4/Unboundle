@@ -8,6 +8,9 @@
     "BundleItemMixin",
     "ServerPlayerMixin"
   ],
+  "mixinextras": {
+    "minVersion": "0.5.0"
+  },
   "injectors": {
     "defaultRequire": 1
   },

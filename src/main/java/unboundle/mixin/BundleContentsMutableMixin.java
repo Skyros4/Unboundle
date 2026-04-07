@@ -1,18 +1,21 @@
 package unboundle.mixin;
 
+import com.llamalad7.mixinextras.expression.Definition;
+import com.llamalad7.mixinextras.expression.Expression;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.network.chat.Component;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
-import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import unboundle.BundleRenderContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.BundleContents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import unboundle.BundleUIContext;
 import unboundle.Unboundle;
 
 import java.util.List;
@@ -29,6 +32,18 @@ public class BundleContentsMutableMixin {
     // Across this class there will be commented out Logger statements, for easier debugging.
     @Unique
     private static final Logger LOGGER = LoggerFactory.getLogger(Unboundle.MOD_ID);
+
+    // If the item on the cursor is already present in the bundle,
+    // holding Shift no longer adds the new item to the existing stack, resulting in it being added as a new stack.
+    @Definition(id = "j", local = @Local(type = int.class, ordinal = 1))
+    @Expression("j != -1")
+    @ModifyExpressionValue(
+            method = "tryInsert(Lnet/minecraft/world/item/ItemStack;)I",
+            at = @At("MIXINEXTRAS:EXPRESSION")
+    )
+    private boolean modifyJCondition(boolean original) {
+        return original && !BundleUIContext.shiftClick;
+    }
 
     // When adding an item to the bundle, and there's already an item of the same type already present in there,
     // preserve the position of the latter instead of moving that item to the front.
@@ -65,13 +80,13 @@ public class BundleContentsMutableMixin {
 
             // ... after the current window, update the window so that the earliest window is shown where the item is visible,
             // making it look like it was automatically scrolled down to
-            if (BundleRenderContext.getItemsToShowEnd(this.items.size(), this.toImmutable().getNumberOfItemsToShow()) < indexOfSameItem) {
-                BundleRenderContext.rowOffset = BundleRenderContext.getEarliestRowOffsetFromIndex(items.size(), indexOfSameItem);
+            if (BundleUIContext.getItemsToShowEnd(this.items.size(), this.toImmutable().getNumberOfItemsToShow()) < indexOfSameItem) {
+                BundleUIContext.rowOffset = BundleUIContext.getEarliestRowOffsetFromIndex(items.size(), indexOfSameItem);
             }
             // ... before the current window, update the window so that the latest window is shown where the item is visible,
             // making it look like it was automatically scrolled up to
-            else if (BundleRenderContext.getItemsToShowStart(this.items.size()) > indexOfSameItem) {
-                BundleRenderContext.rowOffset = BundleRenderContext.getLatestRowOffsetFromIndex(items.size(), indexOfSameItem);
+            else if (BundleUIContext.getItemsToShowStart(this.items.size()) > indexOfSameItem) {
+                BundleUIContext.rowOffset = BundleUIContext.getLatestRowOffsetFromIndex(items.size(), indexOfSameItem);
             }
             // ... otherwise just stay in the current window if the targeted slot is visible already
 
@@ -106,8 +121,8 @@ public class BundleContentsMutableMixin {
         int itemInsertedIndex = Math.min(selectedItem + 1, this.items.size());
         // Usually when inserting a new item, the rowOffset is not changed because you are already on the correct window as you insert the item.
         // However, here this is done because you can change the amount of rowOffsets by creating a new top row with just 1 item in it, in which case we just increase the rowOffset by 1.
-        if(this.items.size() % BundleRenderContext.config().columns == 1 && selectedItem > 0) {
-            BundleRenderContext.rowOffset = Math.min(BundleRenderContext.rowOffset + 1, BundleRenderContext.getMaxRowOffset(this.items.size()));
+        if(this.items.size() % BundleUIContext.config().columns == 1 && selectedItem > 0) {
+            BundleUIContext.rowOffset = Math.min(BundleUIContext.rowOffset + 1, BundleUIContext.getMaxRowOffset(this.items.size()));
         }
         if (this.selectedItem != -1) {
             this.toggleSelectedItem(itemInsertedIndex);
@@ -143,8 +158,8 @@ public class BundleContentsMutableMixin {
             at = @At("RETURN")
     )
     private void removeOne$handleOneLessRow(CallbackInfoReturnable<Component> cir) {
-        if(this.items.size() % BundleRenderContext.config().columns == 0 && selectedItem != -1){
-            BundleRenderContext.rowOffset = Math.max(BundleRenderContext.rowOffset - 1, 0);
+        if(this.items.size() % BundleUIContext.config().columns == 0 && selectedItem != -1){
+            BundleUIContext.rowOffset = Math.max(BundleUIContext.rowOffset - 1, 0);
         }
     }
 

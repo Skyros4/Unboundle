@@ -1,7 +1,10 @@
 {
   "text.autoconfig.unboundle.title": "Unboundle",
-  "text.autoconfig.unboundle.option.rows": "Tooltip Rows",
-  "text.autoconfig.unboundle.option.rows.tooltip": "Controls the maximum number of rows for items in the bundle tooltip.",
-  "text.autoconfig.unboundle.option.columns": "Tooltip Columns",
-  "text.autoconfig.unboundle.option.columns.tooltip": "Controls the maximum number of columns for items in the bundle tooltip."
+  "text.autoconfig.unboundle.option.rows": "Bundle Tooltip Rows",
+  "text.autoconfig.unboundle.option.columns": "Bundle Tooltip Columns",
+  "text.autoconfig.unboundle.option.clickBehaviour": "GUI Bundle Click Behaviour",
+  "text.autoconfig.unboundle.option.clickBehaviour.tooltip": "Controls how left and right click",
+  "text.autoconfig.unboundle.option.clickBehaviour.tooltip2": "interact with the bundle and its contents.",
+  "text.autoconfig.unboundle.option.clickBehaviour.buttonYes": "Separated",
+  "text.autoconfig.unboundle.option.clickBehaviour.buttonNo": "Vanilla"
 }

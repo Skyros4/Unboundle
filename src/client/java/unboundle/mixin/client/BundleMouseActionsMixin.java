@@ -5,7 +5,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import unboundle.BundleRenderContext;
+import unboundle.BundleUIContext;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.client.gui.BundleMouseActions;
 import net.minecraft.client.ScrollWheelHandler;
@@ -59,10 +59,10 @@ public class BundleMouseActionsMixin {
         BundleContents bundleContents = bundleItemStack.get(DataComponents.BUNDLE_CONTENTS);
         int totalItems = bundleContents.size();
         // The total amount of rows we can scroll down by at most.
-        int maxRowOffset = BundleRenderContext.getMaxRowOffset(totalItems);
+        int maxRowOffset = BundleUIContext.getMaxRowOffset(totalItems);
         // These indexes are relative to entire list, not the current window
-        int currentItemsToShowStart = BundleRenderContext.getItemsToShowStart(bundleContents.size());
-        int currentItemsToShowEnd = BundleRenderContext.getItemsToShowEnd(bundleContents.size(), bundleContents.getNumberOfItemsToShow());
+        int currentItemsToShowStart = BundleUIContext.getItemsToShowStart(bundleContents.size());
+        int currentItemsToShowEnd = BundleUIContext.getItemsToShowEnd(bundleContents.size(), bundleContents.getNumberOfItemsToShow());
         // Corresponds to l in the deobfuscated code.
         int currentlySelected = BundleItem.getSelectedItem(bundleItemStack);
         // scrollDirection is negated because renderBundleWithItemsTooltip within ClientBundleTooltip renders the items from bottom right to top left,
@@ -81,22 +81,22 @@ public class BundleMouseActionsMixin {
         boolean atVisibleFirst = !atActualFirst && newSelected < currentItemsToShowStart && scrollDirection < 0;
         if (atActualLast) {
             // This flips to the topmost window for the items
-            BundleRenderContext.rowOffset = 0;
+            BundleUIContext.rowOffset = 0;
             this.toggleSelectedBundleItem(bundleItemStack, i, 0);
         }
         else if (atActualFirst) {
             // This flips to the bottommost window for the items
-            BundleRenderContext.rowOffset = maxRowOffset;
+            BundleUIContext.rowOffset = maxRowOffset;
             this.toggleSelectedBundleItem(bundleItemStack, i, totalItems - 1);
         }
         else if (atVisibleLast) {
             // Proceed down one row
-            BundleRenderContext.rowOffset = BundleRenderContext.rowOffset + 1;
+            BundleUIContext.rowOffset = BundleUIContext.rowOffset + 1;
             this.toggleSelectedBundleItem(bundleItemStack, i, currentItemsToShowEnd + 1);
         }
         else if (atVisibleFirst) {
             // Proceed up one row
-            BundleRenderContext.rowOffset = BundleRenderContext.rowOffset - 1;
+            BundleUIContext.rowOffset = BundleUIContext.rowOffset - 1;
             this.toggleSelectedBundleItem(bundleItemStack, i, currentItemsToShowStart - 1);
         }
         else {
@@ -108,8 +108,8 @@ public class BundleMouseActionsMixin {
 //        int numberOfItemsToShow = BundleItem.getNumberOfItemsToShow(bundleItemStack);
 //        // The only difference to currentItemsToShow is that these are computed after the rowOffset has been updated.
 //        // So these represent the new indexes for the window after a row scroll.
-//        int newItemsToShowStart = BundleRenderContext.getItemsToShowStart(bundleContents.size());
-//        int newItemsToShowEnd = BundleRenderContext.getItemsToShowEnd(bundleContents.size(), bundleContents.getNumberOfItemsToShow());
+//        int newItemsToShowStart = BundleUIContext.getItemsToShowStart(bundleContents.size());
+//        int newItemsToShowEnd = BundleUIContext.getItemsToShowEnd(bundleContents.size(), bundleContents.getNumberOfItemsToShow());
 //        LOGGER.info("numberOfItemsToShow: {}->{} | itemsToShowStart: {}->{} | itemsToShowEnd: {}->{} | selected: {}->{} | " +
 //                    "maxRowOffset: {} | aAL: {}, aVL: {}, aAF: {}, aVF: {}",
 //                    numberOfItemsToShow, BundleItem.getNumberOfItemsToShow(bundleItemStack),
@@ -123,7 +123,7 @@ public class BundleMouseActionsMixin {
         at = @At(value = "HEAD")
     )
     public void onStopHovering$resetRowOffset(Slot slot, CallbackInfo cir) {
-        BundleRenderContext.rowOffset = 0;
+        BundleUIContext.rowOffset = 0;
     }
 
     // Resets rowOffset to 0 when you shift-click or move with keybinds so that the initial window for items is the topmost one
@@ -135,7 +135,7 @@ public class BundleMouseActionsMixin {
         )
     )
     public void onSlotClicked$resetRowOffset(Slot slot, ClickType clickType, CallbackInfo ci) {
-            BundleRenderContext.rowOffset = 0;
+        BundleUIContext.rowOffset = 0;
     }
 
     @Shadow @Final

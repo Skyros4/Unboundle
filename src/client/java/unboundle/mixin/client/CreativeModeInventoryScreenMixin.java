@@ -1,5 +1,7 @@
 package unboundle.mixin.client;
 
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen.ItemPickerMenu;
@@ -15,7 +17,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import unboundle.BundleRenderContext;
+import unboundle.BundleUIContext;
 
 @Mixin(CreativeModeInventoryScreen.class)
 public abstract class CreativeModeInventoryScreenMixin extends AbstractContainerScreen<ItemPickerMenu> {
@@ -37,7 +39,7 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         // If doing the middle click on a bundle item
         if (clickType == ClickType.CLONE && slot.getItem().getItem() instanceof BundleItem) {
             // Resets the row offset
-            BundleRenderContext.rowOffset = 0;
+            BundleUIContext.rowOffset = 0;
             // Get an editable version of the bundle stack
             ItemStack stack = slot.getItem();
             BundleContents contents = stack.getOrDefault(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY);
@@ -47,5 +49,27 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
             // Write the changes into the current bundle
             stack.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
         }
+    }
+
+    // Prevent the vanilla safeguard of resetting selectedItem on QUICK_MOVE from firing if trying to insert as a separate item.
+    // Applies to the inventory screen in Creative Mode.
+    @WrapWithCondition(
+            method = "slotClicked",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/screens/inventory/CreativeModeInventoryScreen;onMouseClickAction(Lnet/minecraft/world/inventory/Slot;Lnet/minecraft/world/inventory/ClickType;)V"
+            )
+    )
+    private boolean disableSelectedItemResetOnSeparateInsertion(CreativeModeInventoryScreen instance, Slot slot, ClickType clickType,
+                                        @Local(ordinal = 0, argsOnly = true) int i,
+                                        @Local(ordinal = 1, argsOnly = true) int j) {
+        if (slot == null) return true;
+        ItemStack slotItem = slot.getItem();
+        ItemStack carried = this.menu.getCarried();
+        return !(clickType == ClickType.QUICK_MOVE &&
+                i >= 0 &&
+                (BundleUIContext.config().clickBehaviourSeparate ? j == 1 : j == 0) &&
+                (slotItem.getItem() instanceof BundleItem && !carried.isEmpty()) ||
+                (!slotItem.isEmpty() && carried.getItem() instanceof BundleItem));
     }
 }
