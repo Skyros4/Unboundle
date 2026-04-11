@@ -12,8 +12,8 @@ public class ModMenuEntrypoint implements ModMenuApi {
 	@Override
 	public ConfigScreenFactory<?> getModConfigScreenFactory() {
 		return parent -> {
-			// Loads the variables from BundleConfig
-			BundleConfig config = AutoConfig.getConfigHolder(BundleConfig.class).getConfig();
+			// Loads the variables from UnboundleConfig
+			UnboundleConfig config = AutoConfig.getConfigHolder(UnboundleConfig.class).getConfig();
 			// Set up the mod settings menu
 			ConfigBuilder builder = ConfigBuilder.create()
 					.setParentScreen(parent)
@@ -35,6 +35,13 @@ public class ModMenuEntrypoint implements ModMenuApi {
 					.setSaveConsumer(val -> config.columns = val)
 					.build());
 			general.addEntry(entryBuilder.startBooleanToggle(
+							Component.translatable("text.autoconfig.unboundle.option.randomizedUsage"), config.randomizedUsage)
+					.setDefaultValue(false)
+					.setTooltip(Component.translatable("text.autoconfig.unboundle.option.randomizedUsage.tooltip"),
+							Component.translatable("text.autoconfig.unboundle.option.randomizedUsage.tooltip2"))
+					.setSaveConsumer(val -> config.randomizedUsage = val)
+					.build());
+			general.addEntry(entryBuilder.startBooleanToggle(
 							Component.translatable("text.autoconfig.unboundle.option.clickBehaviour"), config.clickBehaviourSeparate)
 					.setDefaultValue(false)
 					.setTooltip(Component.translatable("text.autoconfig.unboundle.option.clickBehaviour.tooltip"),
@@ -45,9 +52,9 @@ public class ModMenuEntrypoint implements ModMenuApi {
 					.setSaveConsumer(val -> config.clickBehaviourSeparate = val)
 					.build());
 
-			// Links the settings to the variables in BundleConfig
+			// Links the settings to the variables in UnboundleConfig
 			builder.setSavingRunnable(() ->
-					AutoConfig.getConfigHolder(BundleConfig.class).save());
+					AutoConfig.getConfigHolder(UnboundleConfig.class).save());
 
 			return builder.build();
 		};

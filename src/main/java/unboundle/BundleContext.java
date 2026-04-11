@@ -11,7 +11,7 @@ import org.apache.commons.lang3.math.Fraction;
 
 import java.util.List;
 
-public class BundleUIContext {
+public class BundleContext {
     // Represents how many rows are currently being scrolled down from the initial item grid window.
     public static int rowOffset = 0;
     // Used for the shadows of 16-stackables and unstackables, to determine whether they should render darker or brighter
@@ -20,8 +20,8 @@ public class BundleUIContext {
     public static boolean shiftClick = false;
 
     // Allows access to the rows and columns variables
-    public static BundleConfig config() {
-        return AutoConfig.getConfigHolder(BundleConfig.class).getConfig();
+    public static UnboundleConfig config() {
+        return AutoConfig.getConfigHolder(UnboundleConfig.class).getConfig();
     }
 
     // Computes the earliest row offset the index can be on, resulting in the item itself showing on the bottom row of the current window.
@@ -81,10 +81,10 @@ public class BundleUIContext {
             (bundleContents.size() - 1)
                 shifts input to end on a multiple of COLUMNS, instead of start.
                 Example: from 16-19 to 17-20
-            (( [...] % BundleConfig.COLUMNS) + 2)
+            (( [...] % UnboundleConfig.COLUMNS) + 2)
                 shifts output by 2, one to pass from the very top row to the next row, and one to account for the top left counter.
                 Example: from 0-3 to 2-5
-            [...] + Math.max(0, rowOffset - 1) * BundleConfig.COLUMNS)
+            [...] + Math.max(0, rowOffset - 1) * UnboundleConfig.COLUMNS)
                 starts adding multiples of COLUMNS to this initial output,
                 starting on rowOffset == 2 aka on the second row scrolled down,
                 The initial offset above already accounts for the first row scrolled down.

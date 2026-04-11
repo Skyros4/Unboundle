@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import unboundle.BundleUIContext;
+import unboundle.BundleContext;
 
 @Mixin(CreativeModeInventoryScreen.class)
 public abstract class CreativeModeInventoryScreenMixin extends AbstractContainerScreen<ItemPickerMenu> {
@@ -39,7 +39,7 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         // If doing the middle click on a bundle item
         if (clickType == ClickType.CLONE && slot.getItem().getItem() instanceof BundleItem) {
             // Resets the row offset
-            BundleUIContext.rowOffset = 0;
+            BundleContext.rowOffset = 0;
             // Get an editable version of the bundle stack
             ItemStack stack = slot.getItem();
             BundleContents contents = stack.getOrDefault(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY);
@@ -68,7 +68,7 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         ItemStack carried = this.menu.getCarried();
         return !(clickType == ClickType.QUICK_MOVE &&
                 i >= 0 &&
-                (BundleUIContext.config().clickBehaviourSeparate ? j == 1 : j == 0) &&
+                (BundleContext.config().clickBehaviourSeparate ? j == 1 : j == 0) &&
                 (slotItem.getItem() instanceof BundleItem && !carried.isEmpty()) ||
                 (!slotItem.isEmpty() && carried.getItem() instanceof BundleItem));
     }

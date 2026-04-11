@@ -5,14 +5,19 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.BundleItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.BundleContents;
+import net.minecraft.world.item.component.CustomData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import unboundle.BundleContext;
+
+import java.util.Random;
 
 // Unlike BundleItem, LocalPlayer and ServerPlayer are separated. Hence, the same drop logic is in both classes.
 @Mixin(LocalPlayer.class)
@@ -37,9 +42,28 @@ public class LocalPlayerMixin extends AbstractClientPlayer {
         BundleContents contents = heldStack.get(DataComponents.BUNDLE_CONTENTS);
         if (contents == null || contents.isEmpty()) return ItemStack.EMPTY;
 
-        // Remove the item to be dropped from the bundle, and update the player's hand holding the bundle.
         BundleContents.Mutable mutable = new BundleContents.Mutable(contents);
-        mutable.toggleSelectedItem(0);
+        // If randomizedUsage is enabled, use a field in the bundle's DataComponents to determine randomness, then use that random value to toggle the selected item.
+        // Done with DataComponents so that client and server can individually generate their own random value,
+        // which is the same for both because they pull the seed from one shared location. Then they both generate a new seed, equal on both sides.
+        if(BundleContext.config().randomizedUsage) {
+            // Read
+            long randomHash = heldStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY)
+                    .copyTag().getLong("randomHash").orElse(0L);
+
+            int randomIndex = new Random(randomHash).nextInt(contents.size());
+            // Write
+            CompoundTag tag = heldStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+            tag.putLong("randomHash", new Random(randomHash).nextLong());
+            heldStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+
+            mutable.toggleSelectedItem(randomIndex);
+        }
+        // Otherwise, if not random, just drop the first item in the bundle
+        else{
+            mutable.toggleSelectedItem(0);
+        }
+        // Remove the item to be dropped from the bundle, and update the player's hand holding the bundle.
         ItemStack selectedItem = mutable.removeOne();
         heldStack.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
         this.setItemInHand(InteractionHand.MAIN_HAND, heldStack);

@@ -11,13 +11,15 @@ import static java.util.Map.entry;
 
 // Every field here is written into unboundle.json under .minecraft/config
 @Config(name = "unboundle")
-public class BundleConfig implements ConfigData {
+public class UnboundleConfig implements ConfigData {
     // 3 rows, 4 columns are vanilla settings. Less than 2 rows breaks the scrolling feature.
     // Less than 4 columns no longer matches up with the width of the empty tooltip
     @ConfigEntry.BoundedDiscrete(min = 2, max = 8)
     public int rows = 3;
     @ConfigEntry.BoundedDiscrete(min = 4, max = 8)
     public int columns = 4;
+    // Toggles between vanilla and (left click -> slot and right click -> contents)
+    public boolean randomizedUsage = false;
     // Toggles between vanilla and (left click -> slot and right click -> contents)
     public boolean clickBehaviourSeparate = false;
 

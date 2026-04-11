@@ -9,7 +9,7 @@ public class Unboundle implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		// Tells the game to write the settings to a JSON (to persist) from the BundleConfig class.
-		AutoConfig.register(BundleConfig.class, GsonConfigSerializer::new);
+		// Tells the game to write the settings to a JSON (to persist) from the UnboundleConfig class.
+		AutoConfig.register(UnboundleConfig.class, GsonConfigSerializer::new);
 	}
 }

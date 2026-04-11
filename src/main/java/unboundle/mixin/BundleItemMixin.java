@@ -4,12 +4,14 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.BundleContents;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
@@ -17,7 +19,9 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import unboundle.BundleUIContext;
+import unboundle.BundleContext;
+
+import java.util.Random;
 
 // This class runs on both client and server side.
 // The client predicts everything by running the code themselves, then the server does a validation run and informs the client accordingly.
@@ -40,7 +44,7 @@ public class BundleItemMixin extends Item{
             )
     )
     private ClickAction overrideStackedOnOther$modifyClickAction(ClickAction original) {
-        return BundleUIContext.config().clickBehaviourSeparate
+        return BundleContext.config().clickBehaviourSeparate
                 ? ClickAction.SECONDARY
                 : original; // ClickAction.PRIMARY
     }
@@ -57,7 +61,7 @@ public class BundleItemMixin extends Item{
             )
     )
     private ClickAction modifyClickAction(ClickAction original) {
-        return BundleUIContext.config().clickBehaviourSeparate
+        return BundleContext.config().clickBehaviourSeparate
                 ? ClickAction.SECONDARY
                 : original; // ClickAction.PRIMARY
     }
@@ -70,7 +74,28 @@ public class BundleItemMixin extends Item{
         ItemStack bundleItem = useOnContext.getItemInHand().copy();
         BundleContents contents = bundleItem.get(DataComponents.BUNDLE_CONTENTS);
         if (contents == null || contents.isEmpty()) return InteractionResult.FAIL; // does not allow for the use() fallback
-        ItemStack selectedItem = contents.getItemUnsafe(0).copy();
+        ItemStack selectedItem;
+
+        // If randomizedUsage is enabled, use a field in the bundle's DataComponents to determine randomness, then use that random value to toggle the selected item.
+        // Done with DataComponents so that client and server can individually generate their own random value,
+        // which is the same for both because they pull the seed from one shared location. Then they both generate a new seed, equal on both sides.
+        int randomIndex = 0;
+        if(BundleContext.config().randomizedUsage) {
+            // Read
+            long randomHash = bundleItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getLong("randomHash").orElse(0L);
+
+            randomIndex = new Random(randomHash).nextInt(contents.size());
+            // Write
+            CompoundTag tag = bundleItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+            tag.putLong("randomHash", new Random(randomHash).nextLong());
+            bundleItem.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+
+            selectedItem = contents.getItemUnsafe(randomIndex).copy();
+        }
+        // Otherwise, if not random, just take the first item in the bundle
+        else{
+            selectedItem = contents.getItemUnsafe(0).copy();
+        }
 
         // Creates a new context for the item to be used in, namely replacing the item to be used with the item within the bundle.
         UseOnContext selectedItemUseOnContext = new UseOnContext(
@@ -88,32 +113,32 @@ public class BundleItemMixin extends Item{
 
         // Only items from the whitelist actually get used, the other items are rejected.
         InteractionResult result;
-        if (BundleUIContext.useAllowed(selectedItem)) {
+        if (BundleContext.useAllowed(selectedItem)) {
             result = selectedItem.useOn(selectedItemUseOnContext);
-            // If the item placement failed, return without cycling through the items in the bundle
-            if (!result.consumesAction()) return result;
+            // If the item placement failed, keep cycling through the items in the bundle in hopes of getting an item that is usable.
+            if (!result.consumesAction()) result = InteractionResult.PASS;
         } else {
             result = InteractionResult.PASS; // allows for the use() fallback
         }
 
-        // Takes the item out of the bundle, decrease its count by 1 if in survival, and insert it back at the end if not empty.
+        // Takes the item that was just used out of the bundle, decrease its count by 1 if in survival, and insert it back at the end if not empty.
         BundleContents.Mutable mutable = new BundleContents.Mutable(contents);
-        mutable.toggleSelectedItem(0);
+        mutable.toggleSelectedItem(BundleContext.config().randomizedUsage ? randomIndex : 0);
         ItemStack toRemove = mutable.removeOne();
         if (!useOnContext.getPlayer().getAbilities().instabuild) toRemove.shrink(1);
         if (!toRemove.isEmpty()) {
-            // Always inserts as a separate stack
-            // That way, separate stacks are preserved, and unified stacks remain unaffected
-            mutable.toggleSelectedItem(mutable.toImmutable().size() - 1);
-            BundleUIContext.shiftClick = true;
+            // Always inserts as a separate stack. That way, separate stacks are preserved, and unified stacks remain unaffected
+            // If not randomizedUsage, insert at the end to simulate cycling
+            if (!BundleContext.config().randomizedUsage) mutable.toggleSelectedItem(mutable.toImmutable().size() - 1);
+            BundleContext.shiftClick = true;
             mutable.tryInsert(toRemove);
-            BundleUIContext.shiftClick = false;
+            BundleContext.shiftClick = false;
         }
-        // Resets the UI after cycling
+        // Resets everything after cycling
         mutable.toggleSelectedItem(-1);
-        BundleUIContext.rowOffset = 0;
+        BundleContext.rowOffset = 0;
 
-        // The bundle appears to be playing the "pick up" animation precisely because the items have been successfully cycled through,
+        // The bundle appears to be playing the "pick up" animation because of this set(),
         // and a new bundle is written into the player's hand.
         bundleItem.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
         useOnContext.getPlayer().setItemInHand(useOnContext.getHand(), bundleItem);

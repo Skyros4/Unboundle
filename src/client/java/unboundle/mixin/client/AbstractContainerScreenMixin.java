@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import unboundle.BundleUIContext;
+import unboundle.BundleContext;
 
 @Mixin(AbstractContainerScreen.class)
 public abstract class AbstractContainerScreenMixin<T extends AbstractContainerMenu> extends Screen {
@@ -43,7 +43,7 @@ public abstract class AbstractContainerScreenMixin<T extends AbstractContainerMe
         ItemStack carried = this.menu.getCarried();
         return !(clickType == ClickType.QUICK_MOVE &&
                 i >= 0 &&
-                (BundleUIContext.config().clickBehaviourSeparate ? j == 1 : j == 0) &&
+                (BundleContext.config().clickBehaviourSeparate ? j == 1 : j == 0) &&
                 (slotItem.getItem() instanceof BundleItem && !carried.isEmpty()) ||
                     (!slotItem.isEmpty() && carried.getItem() instanceof BundleItem));
     }

@@ -2,7 +2,7 @@ package unboundle.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import unboundle.BundleUIContext;
+import unboundle.BundleContext;
 import net.minecraft.world.item.component.BundleContents;
 import org.spongepowered.asm.mixin.*;
 
@@ -17,13 +17,13 @@ public class BundleContentsMixin {
     @WrapMethod(method = "getNumberOfItemsToShow()I")
     public int getNumberOfItemsToShow(Operation<Integer> original) {
         int totalSize = this.size();
-        int windowEnd = BundleUIContext.rowOffset * BundleUIContext.config().columns + BundleUIContext.config().maxSlots();
-        boolean hasAbove = BundleUIContext.rowOffset > 0;
+        int windowEnd = BundleContext.rowOffset * BundleContext.config().columns + BundleContext.config().maxSlots();
+        boolean hasAbove = BundleContext.rowOffset > 0;
         boolean hasBelow = windowEnd < totalSize;
         int counterSlots = (hasBelow ? 1 : 0) + (hasAbove ? 1 : 0);
-        int amountOfItemsShown = BundleUIContext.config().maxSlots() - counterSlots;
-        int partialRowItems = totalSize % BundleUIContext.config().columns;
-        int emptySlotsInPartialRow = partialRowItems > 0 && !hasAbove ? BundleUIContext.config().columns - partialRowItems : 0;
+        int amountOfItemsShown = BundleContext.config().maxSlots() - counterSlots;
+        int partialRowItems = totalSize % BundleContext.config().columns;
+        int emptySlotsInPartialRow = partialRowItems > 0 && !hasAbove ? BundleContext.config().columns - partialRowItems : 0;
         return Math.min(totalSize, amountOfItemsShown - emptySlotsInPartialRow);
     }
 
