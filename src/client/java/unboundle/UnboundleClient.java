@@ -8,6 +8,10 @@ import net.minecraft.client.Minecraft;
 public class UnboundleClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
+		// Initializes the listeners for the custom key bind toggling the randomizer
+		UnboundleKeybinds.register();
+		UnboundleClientEvents.register();
+
 		// client == Minecraft.getInstance()
 		// Sets up event listeners that set a boolean flag indicating whether the high contrast resource pack is loaded, on client start
 		ClientLifecycleEvents.CLIENT_STARTED.register(client ->

@@ -25,31 +25,37 @@ public class ModMenuEntrypoint implements ModMenuApi {
 			general.addEntry(entryBuilder.startIntSlider(
 							Component.translatable("text.autoconfig.unboundle.option.rows"), config.rows, 2, 8)
 					.setDefaultValue(3)
+					.setTooltip(Component.translatable("text.autoconfig.unboundle.option.rows.tooltip"),
+								Component.translatable("text.autoconfig.unboundle.option.rows.tooltip2"))
 					.setTextGetter(val -> Component.literal(String.valueOf(val)))
 					.setSaveConsumer(val -> config.rows = val)
 					.build());
 			general.addEntry(entryBuilder.startIntSlider(
 							Component.translatable("text.autoconfig.unboundle.option.columns"), config.columns, 4, 8)
 					.setDefaultValue(4)
+					.setTooltip(Component.translatable("text.autoconfig.unboundle.option.columns.tooltip"),
+								Component.translatable("text.autoconfig.unboundle.option.columns.tooltip2"))
 					.setTextGetter(val -> Component.literal(String.valueOf(val)))
 					.setSaveConsumer(val -> config.columns = val)
 					.build());
 			general.addEntry(entryBuilder.startBooleanToggle(
-							Component.translatable("text.autoconfig.unboundle.option.randomizedUsage"), config.randomizedUsage)
+							Component.translatable("text.autoconfig.unboundle.option.randomizer"), config.randomizedUsage)
 					.setDefaultValue(false)
-					.setTooltip(Component.translatable("text.autoconfig.unboundle.option.randomizedUsage.tooltip"),
-							Component.translatable("text.autoconfig.unboundle.option.randomizedUsage.tooltip2"))
+					.setTooltip(Component.translatable("text.autoconfig.unboundle.option.randomizer.tooltip"),
+							Component.translatable("text.autoconfig.unboundle.option.randomizer.tooltip2"),
+							Component.translatable("text.autoconfig.unboundle.option.randomizer.tooltip3"))
 					.setSaveConsumer(val -> config.randomizedUsage = val)
 					.build());
-			general.addEntry(entryBuilder.startBooleanToggle(
-							Component.translatable("text.autoconfig.unboundle.option.clickBehaviour"), config.clickBehaviourSeparate)
-					.setDefaultValue(false)
-					.setTooltip(Component.translatable("text.autoconfig.unboundle.option.clickBehaviour.tooltip"),
-								Component.translatable("text.autoconfig.unboundle.option.clickBehaviour.tooltip2"))
-					.setYesNoTextSupplier(val -> val ?
-							Component.translatable("text.autoconfig.unboundle.option.clickBehaviour.buttonYes") :
-							Component.translatable("text.autoconfig.unboundle.option.clickBehaviour.buttonNo"))
-					.setSaveConsumer(val -> config.clickBehaviourSeparate = val)
+			general.addEntry(entryBuilder.startEnumSelector(
+							Component.translatable("text.autoconfig.unboundle.option.ClickBehaviour"),
+							UnboundleConfig.ClickBehaviour.class,
+							config.clickBehaviour)
+					.setDefaultValue(UnboundleConfig.ClickBehaviour.VANILLA)
+					.setTooltip(Component.translatable("text.autoconfig.unboundle.option.ClickBehaviour.tooltip"),
+								Component.translatable("text.autoconfig.unboundle.option.ClickBehaviour.tooltip2"))
+					.setEnumNameProvider(val -> Component.translatable(
+							"text.autoconfig.unboundle.option.ClickBehaviour." + val.name().toLowerCase()))
+					.setSaveConsumer(val -> config.clickBehaviour = val)
 					.build());
 
 			// Links the settings to the variables in UnboundleConfig

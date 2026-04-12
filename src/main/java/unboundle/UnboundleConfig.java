@@ -18,10 +18,15 @@ public class UnboundleConfig implements ConfigData {
     public int rows = 3;
     @ConfigEntry.BoundedDiscrete(min = 4, max = 8)
     public int columns = 4;
-    // Toggles between vanilla and (left click -> slot and right click -> contents)
+    // Toggles the random item usage out of the bundle.
     public boolean randomizedUsage = false;
-    // Toggles between vanilla and (left click -> slot and right click -> contents)
-    public boolean clickBehaviourSeparate = false;
+    // Toggles between vanilla, (left click -> slot and right click -> contents) and (left click -> contents and right click -> slot)
+    public enum ClickBehaviour {
+        VANILLA,
+        PRIMARY_BUNDLE,
+        PRIMARY_CONTENTS
+    }
+    public ClickBehaviour clickBehaviour = ClickBehaviour.VANILLA;
 
     // Determines which items are allowed to be used out of a bundle.
     // Gives the user the ability to toy around with this themselves.

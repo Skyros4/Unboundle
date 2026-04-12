@@ -18,6 +18,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import unboundle.BundleContext;
+import unboundle.UnboundleConfig;
 
 @Mixin(CreativeModeInventoryScreen.class)
 public abstract class CreativeModeInventoryScreenMixin extends AbstractContainerScreen<ItemPickerMenu> {
@@ -68,7 +69,7 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         ItemStack carried = this.menu.getCarried();
         return !(clickType == ClickType.QUICK_MOVE &&
                 i >= 0 &&
-                (BundleContext.config().clickBehaviourSeparate ? j == 1 : j == 0) &&
+                (BundleContext.config().clickBehaviour == UnboundleConfig.ClickBehaviour.PRIMARY_BUNDLE ? j == 1 : j == 0) &&
                 (slotItem.getItem() instanceof BundleItem && !carried.isEmpty()) ||
                 (!slotItem.isEmpty() && carried.getItem() instanceof BundleItem));
     }

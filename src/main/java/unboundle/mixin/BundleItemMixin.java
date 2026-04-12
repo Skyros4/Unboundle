@@ -20,6 +20,7 @@ import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import unboundle.BundleContext;
+import unboundle.UnboundleConfig;
 
 import java.util.Random;
 
@@ -33,7 +34,7 @@ public class BundleItemMixin extends Item{
     }
 
     // Bundle is on cursor, item is in slot.
-    // If the setting clickBehaviourSeparate is enabled, right-clicking now inserts items, when the bundle is on the cursor
+    // If PRIMARY_BUNDLE, right click inserts items, otherwise left click.
     @ModifyExpressionValue(
             method = "overrideStackedOnOther(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/inventory/Slot;Lnet/minecraft/world/inventory/ClickAction;Lnet/minecraft/world/entity/player/Player;)Z",
             at = @At(
@@ -43,14 +44,46 @@ public class BundleItemMixin extends Item{
                     opcode = Opcodes.GETSTATIC
             )
     )
-    private ClickAction overrideStackedOnOther$modifyClickAction(ClickAction original) {
-        return BundleContext.config().clickBehaviourSeparate
+    private ClickAction overrideStackedOnOther$modifyClickActionPrimary(ClickAction original) {
+        return BundleContext.config().clickBehaviour == UnboundleConfig.ClickBehaviour.PRIMARY_BUNDLE
                 ? ClickAction.SECONDARY
                 : original; // ClickAction.PRIMARY
     }
+    // Bundle is on cursor, slot is empty.
+    // If PRIMARY_CONTENTS, left click drops items into the slot, otherwise right click.
+    @ModifyExpressionValue(
+            method = "overrideStackedOnOther(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/inventory/Slot;Lnet/minecraft/world/inventory/ClickAction;Lnet/minecraft/world/entity/player/Player;)Z",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lnet/minecraft/world/inventory/ClickAction;SECONDARY:Lnet/minecraft/world/inventory/ClickAction;",
+                    ordinal = 0,
+                    opcode = Opcodes.GETSTATIC
+            )
+    )
+    private ClickAction overrideStackedOnOther$modifyClickActionSecondary(ClickAction original) {
+        return BundleContext.config().clickBehaviour == UnboundleConfig.ClickBehaviour.PRIMARY_CONTENTS
+                ? ClickAction.PRIMARY
+                : original; // ClickAction.SECONDARY
+    }
 
+    // Bundle is in slot, cursor is empty.
+    // If PRIMARY_CONTENTS, right click now picks up the bundle, otherwise left click.
+    @ModifyExpressionValue(
+            method = "overrideOtherStackedOnMe(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/inventory/Slot;Lnet/minecraft/world/inventory/ClickAction;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/SlotAccess;)Z",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lnet/minecraft/world/inventory/ClickAction;PRIMARY:Lnet/minecraft/world/inventory/ClickAction;",
+                    ordinal = 0,
+                    opcode = Opcodes.GETSTATIC
+            )
+    )
+    private ClickAction overrideOtherStackedOnMe$modifyClickActionFirstPrimary(ClickAction original) {
+        return BundleContext.config().clickBehaviour == UnboundleConfig.ClickBehaviour.PRIMARY_CONTENTS
+                ? ClickAction.SECONDARY
+                : original; // ClickAction.PRIMARY
+    }
     // Bundle is in slot, item is on cursor.
-    // If the setting clickBehaviourSeparate is enabled, right-clicking now inserts items, when the bundle is in the slot
+    // If PRIMARY_BUNDLE, right click now inserts items, otherwise left click.
     @ModifyExpressionValue(
             method = "overrideOtherStackedOnMe(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/inventory/Slot;Lnet/minecraft/world/inventory/ClickAction;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/SlotAccess;)Z",
             at = @At(
@@ -60,10 +93,26 @@ public class BundleItemMixin extends Item{
                     opcode = Opcodes.GETSTATIC
             )
     )
-    private ClickAction modifyClickAction(ClickAction original) {
-        return BundleContext.config().clickBehaviourSeparate
+    private ClickAction overrideOtherStackedOnMe$modifyClickActionSecondPrimary(ClickAction original) {
+        return BundleContext.config().clickBehaviour == UnboundleConfig.ClickBehaviour.PRIMARY_BUNDLE
                 ? ClickAction.SECONDARY
                 : original; // ClickAction.PRIMARY
+    }
+    // Bundle is in slot, cursor is empty.
+    // If PRIMARY_CONTENTS, left click now takes out items, otherwise right click.
+    @ModifyExpressionValue(
+            method = "overrideOtherStackedOnMe(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/inventory/Slot;Lnet/minecraft/world/inventory/ClickAction;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/SlotAccess;)Z",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lnet/minecraft/world/inventory/ClickAction;SECONDARY:Lnet/minecraft/world/inventory/ClickAction;",
+                    ordinal = 0,
+                    opcode = Opcodes.GETSTATIC
+            )
+    )
+    private ClickAction overrideOtherStackedOnMe$modifyClickActionSecondary(ClickAction original) {
+        return BundleContext.config().clickBehaviour == UnboundleConfig.ClickBehaviour.PRIMARY_CONTENTS
+                ? ClickAction.PRIMARY
+                : original; // ClickAction.SECONDARY
     }
 
     // This method fires on use while looking at a block
@@ -115,8 +164,8 @@ public class BundleItemMixin extends Item{
         InteractionResult result;
         if (BundleContext.useAllowed(selectedItem)) {
             result = selectedItem.useOn(selectedItemUseOnContext);
-            // If the item placement failed, keep cycling through the items in the bundle in hopes of getting an item that is usable.
-            if (!result.consumesAction()) result = InteractionResult.PASS;
+            // If the item placement failed, do nothing, akin to using blocks normally.
+            if (!result.consumesAction()) return result;
         } else {
             result = InteractionResult.PASS; // allows for the use() fallback
         }

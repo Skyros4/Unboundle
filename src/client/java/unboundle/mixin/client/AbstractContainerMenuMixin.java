@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import unboundle.BundleContext;
+import unboundle.UnboundleConfig;
 
 @Mixin(AbstractContainerMenu.class)
 public abstract class AbstractContainerMenuMixin {
@@ -25,7 +26,7 @@ public abstract class AbstractContainerMenuMixin {
     // now use PICKUP to insert as a separate item, instead of executing QUICK_MOVE.
     @WrapMethod(method = "doClick")
     private void disableQuickMoveForSeparateInsertion(int i, int j, ClickType clickType, Player player, Operation<Void> original) {
-        if (clickType == ClickType.QUICK_MOVE && i >= 0 && (BundleContext.config().clickBehaviourSeparate ? j == 1 : j == 0)) { // j indicates which type of click, here it is ClickAction.SECONDARY.
+        if (clickType == ClickType.QUICK_MOVE && i >= 0 && (BundleContext.config().clickBehaviour == UnboundleConfig.ClickBehaviour.PRIMARY_BUNDLE ? j == 1 : j == 0)) { // j indicates which type of click, here it is ClickAction.SECONDARY.
             ItemStack slotItem = this.getSlot(i).getItem();
             ItemStack carried = this.getCarried();
             if ((slotItem.getItem() instanceof BundleItem && !carried.isEmpty()) || (!slotItem.isEmpty() && carried.getItem() instanceof BundleItem)) {
