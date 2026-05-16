@@ -3,9 +3,14 @@
   "package": "unboundle.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "ArmorStandMixin",
+    "BlockItemMixin",
+    "BlockStateBaseMixin",
+    "BundleContentsAccessor",
     "BundleContentsMixin",
     "BundleContentsMutableMixin",
     "BundleItemMixin",
+    "PlayerMixin",
     "ServerPlayerMixin"
   ],
   "mixinextras": {

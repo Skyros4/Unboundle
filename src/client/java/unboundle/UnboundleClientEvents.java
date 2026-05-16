@@ -9,10 +9,10 @@ public class UnboundleClientEvents {
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			while (UnboundleKeybinds.toggleRandomizer.consumeClick()) {
 				// if the configured key is pressed, flip and save the setting, and show a text
-				BundleContext.config().randomizedUsage = !BundleContext.config().randomizedUsage;
+				UnboundleConfig.config().randomizedUsage = !UnboundleConfig.config().randomizedUsage;
 				AutoConfig.getConfigHolder(UnboundleConfig.class).save();
 				client.player.displayClientMessage(
-					net.minecraft.network.chat.Component.translatable(BundleContext.config().randomizedUsage
+					net.minecraft.network.chat.Component.translatable(UnboundleConfig.config().randomizedUsage
 							? "key.unboundle.toggleRandomizer.on"
 							: "key.unboundle.toggleRandomizer.off"),
 						true // above the hotbar (overlay). False would be in chat

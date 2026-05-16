@@ -13,7 +13,7 @@ import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.item.component.CustomData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import unboundle.BundleContext;
+import unboundle.UnboundleConfig;
 
 import java.util.Random;
 
@@ -44,7 +44,7 @@ public class ServerPlayerMixin {
         // If randomizedUsage is enabled, use a field in the bundle's DataComponents to determine randomness, then use that random value to toggle the selected item.
         // Done with DataComponents so that client and server can individually generate their own random value,
         // which is the same for both because they pull the seed from one shared location. Then they both generate a new seed, equal on both sides.
-        if(BundleContext.config().randomizedUsage) {
+        if(UnboundleConfig.config().randomizedUsage) {
             // Read
             long randomHash = heldStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getLong("randomHash").orElse(0L);
 
