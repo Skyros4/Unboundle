@@ -51,9 +51,9 @@ public class BundleMouseActionsMixin {
         // Determines the direction of the scroll, considering mouses that scroll horizontally if no vertical scroll is detected.
         // The change here is: Cap the scrolling speed. Math.signum detects the sign of vector2i, and returns either 1.0, 0.0 or -1.0 respectively.
         // That way scrolling past the currently shown window by traveling multiple slots in 1 frame is not possible.
-        // The x direction is reversed so that up and right are 1, and down and left are -1.
+        // Both directions are reversed so that down and right are 1, and up and left are -1.
         // Corresponds to k in the deobfuscated code.
-        int scrollDirection = vector2i.y != 0 ? (int) Math.signum(vector2i.y) : (int) Math.signum(-vector2i.x);
+        int scrollDirection = vector2i.y != 0 ? (int) Math.signum(-vector2i.y) : (int) Math.signum(vector2i.x);
 
         // ***get the current state of the bundle UI***
         BundleContents bundleContents = bundleItemStack.get(DataComponents.BUNDLE_CONTENTS);
