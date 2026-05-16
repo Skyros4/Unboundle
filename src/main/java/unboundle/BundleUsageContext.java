@@ -42,10 +42,11 @@ public class BundleUsageContext {
         // Only items from the allowlists actually get used, the other items are rejected.
         InteractionResult result;
         if (usageAllowedCheck.check(selectedItem)) {
+            // If the item attempted to be used is currently on a cooldown
+            if (player.getCooldowns().isOnCooldown(selectedItem)) return InteractionResult.PASS;
+
             ItemStack originalHand = player.getItemInHand(interactionHand);
             player.setItemInHand(interactionHand, selectedItem);
-
-            boolean wasOnCooldown = player.getCooldowns().isOnCooldown(selectedItem);
 
             usingFromBundle = true;
             result = usageOperation.apply(selectedItem);
@@ -58,7 +59,7 @@ public class BundleUsageContext {
             player.stopUsingItem(); // Interrupts any dangling item usage, notoriously Ender Eyes.
 
             // If the item just used (e.g. Ender Pearls) has any cooldowns that would have been applied to them, apply to the bundle item type too.
-            applyCooldown(wasOnCooldown, player, bundleItem, selectedItem);
+            applyCooldown(player, bundleItem, selectedItem);
 
             // If the item placement failed, do nothing, akin to using blocks normally.
             if (!result.consumesAction()) return result;
@@ -92,8 +93,8 @@ public class BundleUsageContext {
         }
     }
 
-    public static void applyCooldown(boolean wasOnCooldown, Player player, ItemStack bundleItem, ItemStack selectedItem) {
-        if (!wasOnCooldown && player.getCooldowns().isOnCooldown(selectedItem)) {
+    public static void applyCooldown(Player player, ItemStack bundleItem, ItemStack selectedItem) {
+        if (player.getCooldowns().isOnCooldown(selectedItem)) {
             UseCooldown useCooldown = selectedItem.get(DataComponents.USE_COOLDOWN);
             if (useCooldown != null) {
                 useCooldown.apply(bundleItem, player);
