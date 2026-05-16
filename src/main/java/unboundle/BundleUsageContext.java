@@ -52,7 +52,6 @@ public class BundleUsageContext {
             result = usageOperation.apply(selectedItem);
             usingFromBundle = false;
 
-            System.out.println(result);
             selectedItem = player.getItemInHand(interactionHand);
 
             player.setItemInHand(interactionHand, originalHand);
