@@ -1,6 +1,5 @@
 package unboundle;
 
-import me.shedaniel.autoconfig.AutoConfig;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 public class UnboundleClientEvents {
@@ -10,7 +9,7 @@ public class UnboundleClientEvents {
 			while (UnboundleKeybinds.toggleRandomizer.consumeClick()) {
 				// if the configured key is pressed, flip and save the setting, and show a text
 				UnboundleConfig.config().randomizedUsage = !UnboundleConfig.config().randomizedUsage;
-				AutoConfig.getConfigHolder(UnboundleConfig.class).save();
+				UnboundleConfig.save();
 				client.player.displayClientMessage(
 					net.minecraft.network.chat.Component.translatable(UnboundleConfig.config().randomizedUsage
 							? "key.unboundle.toggleRandomizer.on"

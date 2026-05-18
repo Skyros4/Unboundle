@@ -1,18 +1,26 @@
 package unboundle;
 
-import me.shedaniel.autoconfig.AutoConfig;
-import me.shedaniel.autoconfig.ConfigData;
-import me.shedaniel.autoconfig.annotation.Config;
-import me.shedaniel.autoconfig.annotation.ConfigEntry;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import net.fabricmc.loader.api.FabricLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-// Every field here is written into unboundle.json under .minecraft/config
-@Config(name = "unboundle")
-public class UnboundleConfig implements ConfigData {
-    // 3 rows, 4 columns are vanilla settings. Less than 2 rows breaks the scrolling feature.
-    // Less than 4 columns no longer matches up with the width of the empty tooltip
-    @ConfigEntry.BoundedDiscrete(min = 2, max = 8)
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+// Every public field here is written into unboundle.json under .minecraft/config
+public class UnboundleConfig {
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("unboundle.json");
+    private static final Logger LOGGER = LoggerFactory.getLogger(Unboundle.MOD_ID);
+
+    private static UnboundleConfig instance = new UnboundleConfig();
+
     public int rows = 3;
-    @ConfigEntry.BoundedDiscrete(min = 4, max = 8)
     public int columns = 4;
     // Toggles the random item usage out of the bundle.
     public boolean randomizedUsage = false;
@@ -24,18 +32,41 @@ public class UnboundleConfig implements ConfigData {
     }
     public ClickBehaviour clickBehaviour = ClickBehaviour.VANILLA;
 
-    // Allows access to the rows and columns variables
-    public static UnboundleConfig config() {
-        return AutoConfig.getConfigHolder(UnboundleConfig.class).getConfig();
-    }
-
     public int maxSlots(){
         return rows * columns;
     }
 
+    // Allows access to the rows and columns variables
+    public static UnboundleConfig config() {
+        return instance;
+    }
+
+    public static void load() {
+        if (Files.exists(CONFIG_PATH)) {
+            try (Reader reader = Files.newBufferedReader(CONFIG_PATH)) {
+                instance = GSON.fromJson(reader, UnboundleConfig.class);
+                instance.validate();
+            } catch (IOException e) { // Uses defaults on failure
+                LOGGER.error("Failed to load UnboundleConfig, using defaults...", e);
+                instance = new UnboundleConfig();
+            }
+        } else {
+            instance = new UnboundleConfig();
+            save();
+        }
+    }
+
+    public static void save() {
+        try (Writer writer = Files.newBufferedWriter(CONFIG_PATH)) {
+            GSON.toJson(instance, writer);
+        } catch (IOException e) {
+            LOGGER.error("Failed to save UnboundleConfig", e);
+        }
+    }
+
     // Makes sure the settings cannot be changed manually to exceed bounds
-    @Override
-    public void validatePostLoad() {
+    // Less than 2 rows breaks the scrolling feature. Less than 4 columns no longer matches up with the width of the empty tooltip
+    public void validate() {
         rows = Math.max(2, Math.min(8, rows));
         columns = Math.max(4, Math.min(8, columns));
     }

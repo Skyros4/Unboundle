@@ -2,18 +2,21 @@ package unboundle;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
-import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.chat.Component;
 
 public class ModMenuEntrypoint implements ModMenuApi {
 	@Override
 	public ConfigScreenFactory<?> getModConfigScreenFactory() {
+		// If Cloth Config is not installed, users won't be able to edit the settings.
+		if (!FabricLoader.getInstance().isModLoaded("cloth-config")) return parent -> null;
+
 		return parent -> {
 			// Loads the variables from UnboundleConfig
-			UnboundleConfig config = AutoConfig.getConfigHolder(UnboundleConfig.class).getConfig();
+			UnboundleConfig config = UnboundleConfig.config();
 			// Set up the mod settings menu
 			ConfigBuilder builder = ConfigBuilder.create()
 					.setParentScreen(parent)
@@ -59,8 +62,7 @@ public class ModMenuEntrypoint implements ModMenuApi {
 					.build());
 
 			// Links the settings to the variables in UnboundleConfig
-			builder.setSavingRunnable(() ->
-					AutoConfig.getConfigHolder(UnboundleConfig.class).save());
+			builder.setSavingRunnable(UnboundleConfig::save);
 
 			return builder.build();
 		};
