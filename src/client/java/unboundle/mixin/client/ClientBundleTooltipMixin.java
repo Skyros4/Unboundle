@@ -7,7 +7,7 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import unboundle.BundleUIContext;
+import unboundle.BundleTooltipContext;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientBundleTooltip;
@@ -157,15 +157,15 @@ public class ClientBundleTooltipMixin {
         // Contains a sublist of this.contents, with the items to be currently displayed
         List<ItemStack> list = this.getShownItems(this.contents.getNumberOfItemsToShow());
 
+        int itemsToShowStart = BundleTooltipContext.getItemsToShowStart(this.contents.size());
+        int itemsToShowEnd = BundleTooltipContext.getItemsToShowEnd(this.contents.size(), this.contents.getNumberOfItemsToShow());
         // These two booleans control whether the top left and bottom right counter should be rendered
-        int itemsToShowStart = BundleUIContext.getItemsToShowStart(this.contents.size());
-        int itemsToShowEnd = BundleUIContext.getItemsToShowEnd(this.contents.size(), this.contents.getNumberOfItemsToShow());
         boolean hiddenAbove = itemsToShowStart > 0;
         // + 1 because the former is 0-indexed and the latter 1-indexed
         boolean hiddenBelow = itemsToShowEnd + 1 < this.contents.size();
 
 //        LOGGER.info("getNumberOfItemsToShow(): {} | itemsToShowStart: {} | itemsToShowEnd: {} | rowOffset: {}",
-//                this.contents.getNumberOfItemsToShow(), itemsToShowStart, itemsToShowEnd, BundleUIContext.rowOffset);
+//                this.contents.getNumberOfItemsToShow(), itemsToShowStart, itemsToShowEnd, BundleTooltipContext.rowOffset);
 
         // (slotIndex, j) is the top left edge of the tooltip. (startX, startY) is the bottom right edge
         // k is the total width of the grid. So it is effectively == gridWidth, which means this.getContentXOffset(k) always returns 0.
@@ -174,18 +174,18 @@ public class ClientBundleTooltipMixin {
         int startY = j + this.gridSizeY() * SLOT_SIZE;
         // slotIndex is used to keep track of where in the list we are
         int slotIndex = 1;
-        // ... because we want indexTo iterate over the shown items indexFrom bottom right indexTo top left,
+        // ... because we want to iterate over the shown items from bottom right to top left,
         // so that the oldest items are shown in the bottom right and the newest items in the top left.
         for (int row = 1; row <= this.gridSizeY(); row++) {
             for (int col = 1; col <= UnboundleConfig.config().columns; col++) {
-                // (x, y) is the top left edge of the individual slot indexTo render.
+                // (x, y) is the top left edge of the individual slot to render.
                 int x = startX - col * SLOT_SIZE;
                 int y = startY - row * SLOT_SIZE;
-                // Checks if we're at the bottom right slot, and if we need indexTo draw a counter there.
+                // Checks if we're at the bottom right slot, and if we need to draw a counter there.
                 if (shouldRenderSurplusText(hiddenBelow, col, row)) {
                     renderCount(x, y, this.getAmountOfHiddenItems(list), font, guiGraphics);
                 }
-                // Checks if we're at the top left slot, and if we need indexTo draw a counter there.
+                // Checks if we're at the top left slot, and if we need to draw a counter there.
                 else if (shouldRenderSurplusTextTopLeft(hiddenAbove, col, row)) {
                     renderCount(x, y, this.getAmountOfHiddenItemsForTopLeft(), font, guiGraphics);
                 }
@@ -212,8 +212,8 @@ public class ClientBundleTooltipMixin {
      */
     @WrapMethod(method = "getShownItems(I)Ljava/util/List;")
     private List<ItemStack> dynamicItemWindows(int numberOfItemsToShow, Operation<List<ItemStack>> original) {
-        int itemsToShowStart = BundleUIContext.getItemsToShowStart(this.contents.size());
-        int itemsToShowEnd = BundleUIContext.getItemsToShowEnd(this.contents.size(), numberOfItemsToShow);
+        int itemsToShowStart = BundleTooltipContext.getItemsToShowStart(this.contents.size());
+        int itemsToShowEnd = BundleTooltipContext.getItemsToShowEnd(this.contents.size(), numberOfItemsToShow);
 
 //        LOGGER.info("numberOfItemsToShow: {} | itemsToShowStart: {} | itemsToShowEnd: {}",
 //                    numberOfItemsToShow, itemsToShowStart, itemsToShowEnd);
@@ -244,7 +244,7 @@ public class ClientBundleTooltipMixin {
     )
     private int getAmountOfHiddenItems$considerRowScrolls(int original) {
         return this.contents.itemCopyStream()
-                .skip(BundleUIContext.getItemsToShowEnd(this.contents.size(), this.contents.getNumberOfItemsToShow()) + 1)
+                .skip(BundleTooltipContext.getItemsToShowEnd(this.contents.size(), this.contents.getNumberOfItemsToShow()) + 1)
                 .mapToInt(ItemStack::getCount)
                 .sum();
     }
@@ -252,7 +252,7 @@ public class ClientBundleTooltipMixin {
     @Unique
     private int getAmountOfHiddenItemsForTopLeft() {
         return this.contents.itemCopyStream()
-                .limit(BundleUIContext.getItemsToShowStart(this.contents.size()))
+                .limit(BundleTooltipContext.getItemsToShowStart(this.contents.size()))
                 .mapToInt(ItemStack::getCount)
                 .sum();
     }
@@ -270,7 +270,7 @@ public class ClientBundleTooltipMixin {
         // topLeftSlotIndex represents the index of the current item to render the slot and item icon for, from top left to bottom right.
         // Example: In a 4x4 grid with 16 items, the top left one has a slotIndex of 15, so topLeftSlotIndex is 1 - the first item starting from top left.
         int topLeftSlotIndex = list.size() - slotIndex;
-        int itemsToShowStart = BundleUIContext.getItemsToShowStart(this.contents.size());
+        int itemsToShowStart = BundleTooltipContext.getItemsToShowStart(this.contents.size());
         // The index of the currently rendered slot + offset from potential scrolls is compared to the selectedItem. If yes, make it brighter.
         boolean isSelected = topLeftSlotIndex + itemsToShowStart == this.contents.getSelectedItem();
         // The item data itself to render into the slot.
@@ -278,7 +278,7 @@ public class ClientBundleTooltipMixin {
 
         // Purpose of this is to dynamically change shadows for bundles based on their content.
         // Determines the color of the shadow. If the high contrast texture pack is loaded, make it bright instead of dark for better visibility.
-        int shadowTint = BundleUIContext.highContrast ? 0xFFFFFFFF : 0xFF000000;
+        int shadowTint = BundleTooltipContext.highContrast ? 0xFFFFFFFF : 0xFF000000;
         Fraction weight = ((BundleContentsAccessor)(Object) contents).invokeGetWeight(itemStack);
         // Soft check for 16/64 and above for unstackables, items with a high count and nested bundles with enough items.
         // These will get "heavy" in the bundle GUI

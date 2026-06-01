@@ -146,8 +146,9 @@ public class BundleUsageContext {
             // If not randomizedUsage, insert at the end to simulate cycling
             if (!UnboundleConfig.config().randomizedUsage) mutable.toggleSelectedItem(mutable.toImmutable().size() - 1);
             BundleUIContext.shiftClick = true;
+            BundleTooltipContext.shiftClick = true;
             boolean inserted = mutable.tryInsert(transformedCopy) > 0;
-            BundleUIContext.shiftClick = false;
+            BundleTooltipContext.shiftClick = false;
             if (!inserted) {
                 if (!player.getInventory().add(transformedCopy)) {
                     player.drop(transformedCopy, false);
@@ -156,7 +157,7 @@ public class BundleUsageContext {
         }
         // Resets everything after cycling
         mutable.toggleSelectedItem(-1);
-        BundleUIContext.rowOffset = 0;
+        BundleTooltipContext.rowOffset = 0;
 
         // The bundle appears to be playing the "pick up" animation because of this set(),
         // and a new bundle is written into the player's hand.

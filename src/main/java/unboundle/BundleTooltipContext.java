@@ -2,7 +2,7 @@ package unboundle;
 
 import net.minecraft.util.Mth;
 
-public class BundleUIContext {
+public class BundleTooltipContext {
     // Represents how many rows are currently being scrolled down from the initial item grid window.
     public static int rowOffset = 0;
     // Used for the shadows of 16-stackables and unstackables, to determine whether they should render darker or brighter
@@ -49,7 +49,7 @@ public class BundleUIContext {
         return Mth.positiveCeilDiv(index - (firstRowItems - 1), UnboundleConfig.config().columns);
     }
 
-    // Computes the most amount of row offsets that can occur in a given bundle
+    // Computes the highest amount of row offsets that can occur in a given bundle
     public static int getMaxRowOffset(int totalItems) {
         return Mth.positiveCeilDiv(Math.max(0, totalItems - UnboundleConfig.config().maxSlots()), UnboundleConfig.config().columns);
     }

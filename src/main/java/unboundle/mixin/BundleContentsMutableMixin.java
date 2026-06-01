@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import unboundle.BundleUIContext;
+import unboundle.BundleTooltipContext;
 import unboundle.Unboundle;
 import unboundle.UnboundleConfig;
 
@@ -43,7 +43,7 @@ public class BundleContentsMutableMixin {
             at = @At("MIXINEXTRAS:EXPRESSION")
     )
     private boolean disableOriginalBehaviourForSeparateInsertion(boolean original) {
-        return original && !BundleUIContext.shiftClick;
+        return original && !BundleTooltipContext.shiftClick;
     }
 
     // When adding an item to the bundle, and there's already an item of the same type already present in there,
@@ -81,13 +81,13 @@ public class BundleContentsMutableMixin {
 
             // ... after the current window, update the window so that the earliest window is shown where the item is visible,
             // making it look like it was automatically scrolled down to
-            if (BundleUIContext.getItemsToShowEnd(this.items.size(), this.toImmutable().getNumberOfItemsToShow()) < indexOfSameItem) {
-                BundleUIContext.rowOffset = BundleUIContext.getEarliestRowOffsetFromIndex(items.size(), indexOfSameItem);
+            if (BundleTooltipContext.getItemsToShowEnd(this.items.size(), this.toImmutable().getNumberOfItemsToShow()) < indexOfSameItem) {
+                BundleTooltipContext.rowOffset = BundleTooltipContext.getEarliestRowOffsetFromIndex(items.size(), indexOfSameItem);
             }
             // ... before the current window, update the window so that the latest window is shown where the item is visible,
             // making it look like it was automatically scrolled up to
-            else if (BundleUIContext.getItemsToShowStart(this.items.size()) > indexOfSameItem) {
-                BundleUIContext.rowOffset = BundleUIContext.getLatestRowOffsetFromIndex(items.size(), indexOfSameItem);
+            else if (BundleTooltipContext.getItemsToShowStart(this.items.size()) > indexOfSameItem) {
+                BundleTooltipContext.rowOffset = BundleTooltipContext.getLatestRowOffsetFromIndex(items.size(), indexOfSameItem);
             }
             // ... otherwise just stay in the current window if the targeted slot is visible already
 
@@ -123,7 +123,7 @@ public class BundleContentsMutableMixin {
         // Usually when inserting a new item, the rowOffset is not changed because you are already on the correct window as you insert the item.
         // However, here this is done because you can change the amount of rowOffsets by creating a new top row with just 1 item in it, in which case we just increase the rowOffset by 1.
         if(this.items.size() % UnboundleConfig.config().columns == 1 && selectedItem > 0) {
-            BundleUIContext.rowOffset = Math.min(BundleUIContext.rowOffset + 1, BundleUIContext.getMaxRowOffset(this.items.size()));
+            BundleTooltipContext.rowOffset = Math.min(BundleTooltipContext.rowOffset + 1, BundleTooltipContext.getMaxRowOffset(this.items.size()));
         }
         if (this.selectedItem != -1) {
             this.toggleSelectedItem(itemInsertedIndex);
@@ -160,7 +160,7 @@ public class BundleContentsMutableMixin {
     )
     private void removeOne$handleOneLessRow(CallbackInfoReturnable<Component> cir) {
         if(this.items.size() % UnboundleConfig.config().columns == 0 && selectedItem != -1){
-            BundleUIContext.rowOffset = Math.max(BundleUIContext.rowOffset - 1, 0);
+            BundleTooltipContext.rowOffset = Math.max(BundleTooltipContext.rowOffset - 1, 0);
         }
     }
 

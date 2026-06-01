@@ -23,7 +23,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import unboundle.BundleUIContext;
+import unboundle.BundleTooltipContext;
 import unboundle.BundleUsageAllowedContext;
 import unboundle.BundleUsageContext;
 import unboundle.UnboundleConfig;
@@ -61,7 +61,7 @@ public abstract class BundleItemMixin extends Item implements SignApplicator {
 
             mutable.toggleSelectedItem(-1);
             slotItem.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
-            BundleUIContext.rowOffset = 0;
+            BundleTooltipContext.rowOffset = 0;
         }
     }
 

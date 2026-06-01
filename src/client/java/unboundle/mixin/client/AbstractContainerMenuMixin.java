@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import unboundle.BundleUIContext;
+import unboundle.BundleTooltipContext;
 import unboundle.UnboundleConfig;
 
 @Mixin(AbstractContainerMenu.class)
@@ -30,9 +30,9 @@ public abstract class AbstractContainerMenuMixin {
             ItemStack slotItem = this.getSlot(i).getItem();
             ItemStack carried = this.getCarried();
             if ((slotItem.getItem() instanceof BundleItem && !carried.isEmpty()) || (!slotItem.isEmpty() && carried.getItem() instanceof BundleItem)) {
-                BundleUIContext.shiftClick = true;
+                BundleTooltipContext.shiftClick = true;
                 original.call(i, j, ClickType.PICKUP, player);
-                BundleUIContext.shiftClick = false;
+                BundleTooltipContext.shiftClick = false;
                 return;
             }
         }
@@ -46,7 +46,7 @@ public abstract class AbstractContainerMenuMixin {
         // On every instance a bundle item is picked up and stuck to the cursor, reset the rowOffset so that the item window is reset to the topmost one.
         // Covers 95% of bundle item interaction cases.
         if (!stack.isEmpty() && stack.getItem() instanceof BundleItem) {
-            BundleUIContext.rowOffset = 0;
+            BundleTooltipContext.rowOffset = 0;
         }
     }
 

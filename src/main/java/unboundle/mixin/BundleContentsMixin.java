@@ -7,7 +7,7 @@ import org.apache.commons.lang3.math.Fraction;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import unboundle.BundleUIContext;
+import unboundle.BundleTooltipContext;
 import net.minecraft.world.item.component.BundleContents;
 import org.spongepowered.asm.mixin.*;
 import unboundle.UnboundleConfig;
@@ -37,8 +37,8 @@ public class BundleContentsMixin {
     @WrapMethod(method = "getNumberOfItemsToShow()I")
     public int getNumberOfItemsToShow(Operation<Integer> original) {
         int totalSize = this.size();
-        int windowEnd = BundleUIContext.rowOffset * UnboundleConfig.config().columns + UnboundleConfig.config().maxSlots();
-        boolean hasAbove = BundleUIContext.rowOffset > 0;
+        int windowEnd = BundleTooltipContext.rowOffset * UnboundleConfig.config().columns + UnboundleConfig.config().maxSlots();
+        boolean hasAbove = BundleTooltipContext.rowOffset > 0;
         boolean hasBelow = windowEnd < totalSize;
         int counterSlots = (hasBelow ? 1 : 0) + (hasAbove ? 1 : 0);
         int amountOfItemsShown = UnboundleConfig.config().maxSlots() - counterSlots;

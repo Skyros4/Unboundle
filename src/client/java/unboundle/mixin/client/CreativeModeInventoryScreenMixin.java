@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import unboundle.BundleUIContext;
+import unboundle.BundleTooltipContext;
 import unboundle.UnboundleConfig;
 
 @Mixin(CreativeModeInventoryScreen.class)
@@ -40,7 +40,7 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         // If doing the middle click on a bundle item
         if (clickType == ClickType.CLONE && slot.getItem().getItem() instanceof BundleItem) {
             // Resets the row offset
-            BundleUIContext.rowOffset = 0;
+            BundleTooltipContext.rowOffset = 0;
             // Get an editable version of the bundle stack
             ItemStack stack = slot.getItem();
             BundleContents contents = stack.getOrDefault(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY);
