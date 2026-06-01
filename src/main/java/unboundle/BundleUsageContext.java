@@ -71,10 +71,10 @@ public class BundleUsageContext {
     }
 
     public static int getSelectedItemIndex(ItemStack bundleItem, BundleContents contents) {
-        // If randomizedUsage is enabled, use a field in the bundle's DataComponents to determine randomness, then use that random value to toggle the selected item.
+        // If itemUsageMode == RANDOM, use a field in the bundle's DataComponents to determine randomness, then use that random value to toggle the selected item.
         // Done with DataComponents so that client and server can individually generate their own random value,
         // which is the same for both because they pull the seed from one shared location. Then they both generate a new seed, equal on both sides.
-        if(UnboundleConfig.config().randomizedUsage) {
+        if(UnboundleConfig.config().itemUsageMode == UnboundleConfig.ItemUsageMode.RANDOM) {
             // Read
             long randomHash = bundleItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getLong("randomHash").orElse(0L);
 
@@ -126,7 +126,7 @@ public class BundleUsageContext {
         // Takes the result of the item usage bundle, and insert it back at the end if not empty.
         ItemStack transformed = success.heldItemTransformedTo();
         BundleContents.Mutable mutable = new BundleContents.Mutable(contents);
-        mutable.toggleSelectedItem(UnboundleConfig.config().randomizedUsage ? randomIndex : 0);
+        mutable.toggleSelectedItem(UnboundleConfig.config().itemUsageMode == UnboundleConfig.ItemUsageMode.RANDOM ? randomIndex : 0);
         mutable.removeOne();
         ItemStack transformedCopy;
         if(transformed != null) {
@@ -138,14 +138,13 @@ public class BundleUsageContext {
             // shrink() actually attempts to reduce the item count even in Creative,
             // but the check for the item's slot in the creative inventory prevents that. Bundles bypass this check by nature.
             transformedCopy = player.getAbilities().instabuild && !(selectedItem.getItem() instanceof BundleItem)
-                    ? contents.getItemUnsafe(UnboundleConfig.config().randomizedUsage ? randomIndex : 0).copy()
+                    ? contents.getItemUnsafe(UnboundleConfig.config().itemUsageMode == UnboundleConfig.ItemUsageMode.RANDOM ? randomIndex : 0).copy()
                     : selectedItem.copy();
         }
         if (!transformedCopy.isEmpty()) {
             // Always inserts as a separate stack. That way, separate stacks are preserved, and unified stacks remain unaffected
-            // If not randomizedUsage, insert at the end to simulate cycling
-            if (!UnboundleConfig.config().randomizedUsage) mutable.toggleSelectedItem(mutable.toImmutable().size() - 1);
-            BundleUIContext.shiftClick = true;
+            // If itemUsageMode == SEQUENTIAL, insert at the end to simulate cycling
+            if (UnboundleConfig.config().itemUsageMode == UnboundleConfig.ItemUsageMode.SEQUENTIAL) mutable.toggleSelectedItem(mutable.toImmutable().size() - 1);
             BundleTooltipContext.shiftClick = true;
             boolean inserted = mutable.tryInsert(transformedCopy) > 0;
             BundleTooltipContext.shiftClick = false;

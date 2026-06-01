@@ -41,13 +41,17 @@ public class ModMenuEntrypoint implements ModMenuApi {
 					.setTextGetter(val -> Component.literal(String.valueOf(val)))
 					.setSaveConsumer(val -> config.columns = val)
 					.build());
-			general.addEntry(entryBuilder.startBooleanToggle(
-							Component.translatable("text.autoconfig.unboundle.option.randomizer"), config.randomizedUsage)
-					.setDefaultValue(false)
-					.setTooltip(Component.translatable("text.autoconfig.unboundle.option.randomizer.tooltip"),
-							Component.translatable("text.autoconfig.unboundle.option.randomizer.tooltip2"),
-							Component.translatable("text.autoconfig.unboundle.option.randomizer.tooltip3"))
-					.setSaveConsumer(val -> config.randomizedUsage = val)
+			general.addEntry(entryBuilder.startEnumSelector(
+							Component.translatable("text.autoconfig.unboundle.option.ItemUsageMode"),
+							UnboundleConfig.ItemUsageMode.class,
+							config.itemUsageMode)
+					.setDefaultValue(UnboundleConfig.ItemUsageMode.SEQUENTIAL)
+					.setTooltip(Component.translatable("text.autoconfig.unboundle.option.ItemUsageMode.tooltip"),
+							Component.translatable("text.autoconfig.unboundle.option.ItemUsageMode.tooltip2"),
+							Component.translatable("text.autoconfig.unboundle.option.ItemUsageMode.tooltip3"))
+					.setEnumNameProvider(val -> Component.translatable(
+							"text.autoconfig.unboundle.option.ItemUsageMode." + val.name().toLowerCase()))
+					.setSaveConsumer(val -> config.itemUsageMode = val)
 					.build());
 			general.addEntry(entryBuilder.startEnumSelector(
 							Component.translatable("text.autoconfig.unboundle.option.ClickBehaviour"),

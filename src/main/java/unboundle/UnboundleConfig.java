@@ -23,7 +23,14 @@ public class UnboundleConfig {
     public int rows = 3;
     public int columns = 4;
     // Toggles the random item usage out of the bundle.
-    public boolean randomizedUsage = false;
+    public enum ItemUsageMode {
+        SEQUENTIAL,
+        RANDOM;
+        public ItemUsageMode toggle() {
+            return this == SEQUENTIAL ? RANDOM : SEQUENTIAL;
+        }
+    }
+    public ItemUsageMode itemUsageMode = ItemUsageMode.SEQUENTIAL;
     // Toggles between vanilla, (left click -> slot and right click -> contents) and (left click -> contents and right click -> slot)
     public enum ClickBehaviour {
         VANILLA,

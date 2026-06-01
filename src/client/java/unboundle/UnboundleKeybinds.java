@@ -7,7 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.lwjgl.glfw.GLFW;
 
 public class UnboundleKeybinds {
-	public static KeyMapping toggleRandomizer;
+	public static KeyMapping toggleItemUsageMode;
 	// Creates a new category in the Key Binds menu for the setting. lang reads this as key.category.unboundle.general
 	private static final KeyMapping.Category UNBOUNDLE_CATEGORY = KeyMapping.Category.register(
 			ResourceLocation.fromNamespaceAndPath("unboundle", "general")
@@ -15,8 +15,8 @@ public class UnboundleKeybinds {
 
 	// Reads the key to be used from Minecraft vanilla's Key Binds settings
 	public static void register() {
-		toggleRandomizer = KeyBindingHelper.registerKeyBinding(new KeyMapping(
-				"key.unboundle.toggleRandomizer",
+		toggleItemUsageMode = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+				"key.unboundle.toggleItemUsageMode",
 				InputConstants.Type.KEYSYM,
 				GLFW.GLFW_KEY_UNKNOWN,
 				UNBOUNDLE_CATEGORY

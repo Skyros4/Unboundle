@@ -216,7 +216,7 @@ public abstract class BundleItemMixin extends Item implements SignApplicator {
         // Because we're just getting the selectedItem and not actually using it,
         // the selectedItemIndex value is just read and not written, contrary to what happens in BundleUsageContext.getSelectedItemIndex().
         long randomHash = bundleItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getLong("randomHash").orElse(0L);
-        int selectedItemIndex = UnboundleConfig.config().randomizedUsage ? new Random(randomHash).nextInt(contents.size()) : 0;
+        int selectedItemIndex = UnboundleConfig.config().itemUsageMode == UnboundleConfig.ItemUsageMode.RANDOM ? new Random(randomHash).nextInt(contents.size()) : 0;
         ItemStack selectedItem = contents.getItemUnsafe(selectedItemIndex);
 
         // canApplyToSign now applies to selectedItem rather than the bundle.

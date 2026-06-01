@@ -8,7 +8,7 @@ import net.minecraft.client.Minecraft;
 public class UnboundleClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
-		// Initializes the listeners for the custom key bind toggling the randomizer
+		// Initializes the listeners for the custom key bind toggling the item usage mode
 		UnboundleKeybinds.register();
 		UnboundleClientEvents.register();
 

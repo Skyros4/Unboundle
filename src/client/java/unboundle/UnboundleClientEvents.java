@@ -6,14 +6,14 @@ public class UnboundleClientEvents {
 	public static void register() {
 		// Listens to the key presses
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
-			while (UnboundleKeybinds.toggleRandomizer.consumeClick()) {
+			while (UnboundleKeybinds.toggleItemUsageMode.consumeClick()) {
 				// if the configured key is pressed, flip and save the setting, and show a text
-				UnboundleConfig.config().randomizedUsage = !UnboundleConfig.config().randomizedUsage;
+				UnboundleConfig.config().itemUsageMode = UnboundleConfig.config().itemUsageMode.toggle();
 				UnboundleConfig.save();
 				client.player.displayClientMessage(
-					net.minecraft.network.chat.Component.translatable(UnboundleConfig.config().randomizedUsage
-							? "key.unboundle.toggleRandomizer.on"
-							: "key.unboundle.toggleRandomizer.off"),
+					net.minecraft.network.chat.Component.translatable(UnboundleConfig.config().itemUsageMode == UnboundleConfig.ItemUsageMode.SEQUENTIAL
+							? "key.unboundle.toggleItemUsageMode.sequential"
+							: "key.unboundle.toggleItemUsageMode.random"),
 						true // above the hotbar (overlay). False would be in chat
 				);
 			}

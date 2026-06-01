@@ -41,10 +41,10 @@ public class ServerPlayerMixin {
         }
 
         BundleContents.Mutable mutable = new BundleContents.Mutable(contents);
-        // If randomizedUsage is enabled, use a field in the bundle's DataComponents to determine randomness, then use that random value to toggle the selected item.
+        // If itemUsageMode == RANDOM, use a field in the bundle's DataComponents to determine randomness, then use that random value to toggle the selected item.
         // Done with DataComponents so that client and server can individually generate their own random value,
         // which is the same for both because they pull the seed from one shared location. Then they both generate a new seed, equal on both sides.
-        if(UnboundleConfig.config().randomizedUsage) {
+        if(UnboundleConfig.config().itemUsageMode == UnboundleConfig.ItemUsageMode.RANDOM) {
             // Read
             long randomHash = heldStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getLong("randomHash").orElse(0L);
 
