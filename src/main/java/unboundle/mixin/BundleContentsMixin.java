@@ -17,7 +17,10 @@ public class BundleContentsMixin {
 
     @Inject(
             method = "getWeight(Lnet/minecraft/world/item/ItemStack;)Lorg/apache/commons/lang3/math/Fraction;",
-            at = @At("HEAD"),
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/item/ItemStack;getOrDefault(Lnet/minecraft/core/component/DataComponentType;Ljava/lang/Object;)Ljava/lang/Object;"
+            ),
             cancellable = true
     ) // Changes unstackables' weight to 16/64 for convenience
     private static void getWeight(ItemStack itemStack, CallbackInfoReturnable<Fraction> cir) {
