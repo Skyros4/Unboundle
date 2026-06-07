@@ -3,15 +3,16 @@
 	"id": "unboundle",
 	"version": "${version}",
 	"name": "Unboundle",
-	"description": "What vanilla's bundle could have been. Manage your items more effectively with a dynamic tooltip. Place blocks directly out of the bundle.",
+		"description": "Use items directly out of the bundle, and manage them easily with a dynamic tooltip.",
 	"authors": [
 		"Skyros4"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://modrinth.com/mod/unboundle",
+		"issues": "https://github.com/Skyros4/Unboundle/issues",
+		"sources": "https://github.com/Skyros4/Unboundle"
 	},
-	"license": "CC0-1.0",
+	"license": "LGPL-3.0-only",
 	"icon": "assets/unboundle/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -33,7 +34,7 @@
 		}
 	],
 	"depends": {
-		"fabricloader": ">=0.18.4",
+		"fabricloader": ">=0.14.0",
 		"minecraft": "~1.21.10",
 		"java": ">=21",
 		"fabric-api": "*"
