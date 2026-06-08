@@ -103,6 +103,6 @@ Bug reports and feature requests are welcome on GitHub.
 
 # License
 
-Copyright © 2026 [Skyros4](https://github.com/Skyros4/)
-
 This project is licensed under the [LGPL-3.0 License](LICENSE).
+
+You are free to include it in any modpack.
