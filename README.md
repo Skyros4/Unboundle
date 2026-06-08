@@ -53,6 +53,8 @@ Insert items as a separate stack with a shift-click, and take advantage of recur
 
 The drop key now drops the items out of the bundle, and CTRL & drop drops the bundle item itself.
 
+Want to automate emptying bundles? Droppers can now look inside bundles and drop their contents.
+
 ## Unsupported items
 
 There are a few items that are not supported for item usage. 
