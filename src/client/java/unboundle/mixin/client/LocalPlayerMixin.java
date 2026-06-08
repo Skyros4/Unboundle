@@ -19,7 +19,7 @@ import unboundle.UnboundleConfig;
 
 import java.util.Random;
 
-// Unlike BundleItem, LocalPlayer and ServerPlayer are separated. Hence, the same drop logic is in both classes.
+// Unlike BundleItem, LocalPlayer and ServerPlayer are separated. LocalPlayer predicts the item disappearing from the inventory.
 @Mixin(LocalPlayer.class)
 public class LocalPlayerMixin extends AbstractClientPlayer {
 
@@ -35,8 +35,8 @@ public class LocalPlayerMixin extends AbstractClientPlayer {
             )
     )
     private ItemStack predictDropContents(Inventory inventory, boolean fullStack) {
-        // if not a bundle OR if a bundle and CTRL & drop was pressed, execute vanilla method. if empty, prevent drop.
-        // The latter is done so that players can safely rid the bundle of its contents by holding down the drop key, without also dropping the bundle itself.
+        // if not a bundle OR if a bundle and CTRL & drop was pressed, execute vanilla method.
+        // If bundle is empty, prevent drop. That way, players can safely rid the bundle of its contents by holding down the drop key, without also dropping the bundle itself.
         ItemStack heldStack = this.getItemInHand(InteractionHand.MAIN_HAND);
         if (!(heldStack.getItem() instanceof BundleItem) || fullStack) return inventory.removeFromSelected(fullStack);
         BundleContents contents = heldStack.get(DataComponents.BUNDLE_CONTENTS);
@@ -67,7 +67,7 @@ public class LocalPlayerMixin extends AbstractClientPlayer {
         ItemStack selectedItem = mutable.removeOne();
         heldStack.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
         this.setItemInHand(InteractionHand.MAIN_HAND, heldStack);
-        // The entire stack is dropped.
+        // The item to be dropped is sent to the server which handles the actual drop.
         return selectedItem;
     }
 }

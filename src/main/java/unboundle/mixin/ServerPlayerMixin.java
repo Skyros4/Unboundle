@@ -17,7 +17,7 @@ import unboundle.UnboundleConfig;
 
 import java.util.Random;
 
-// Unlike BundleItem, LocalPlayer and ServerPlayer are separated. Hence, the same drop logic is in both classes.
+// Unlike BundleItem, LocalPlayer and ServerPlayer are separated. ServerPlayer executes the actual drop, including the item being removed from the inventory.
 @Mixin(ServerPlayer.class)
 public class ServerPlayerMixin {
 
@@ -36,9 +36,7 @@ public class ServerPlayerMixin {
         ItemStack heldStack = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
         if (!(heldStack.getItem() instanceof BundleItem) || isStackDropped) return original.call(isStackDropped);
         BundleContents contents = heldStack.get(DataComponents.BUNDLE_CONTENTS);
-        if (contents == null || contents.isEmpty()) {
-            return false;
-        }
+        if (contents == null || contents.isEmpty()) return false;
 
         BundleContents.Mutable mutable = new BundleContents.Mutable(contents);
         // If itemUsageMode == RANDOM, use a field in the bundle's DataComponents to determine randomness, then use that random value to toggle the selected item.
