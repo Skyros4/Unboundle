@@ -73,4 +73,38 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
                 (slotItem.getItem() instanceof BundleItem && !carried.isEmpty()) ||
                 (!slotItem.isEmpty() && carried.getItem() instanceof BundleItem));
     }
+
+    // When the bundle is on the cursor, and the item inside is attempted to be dropped onto the X icon in the creative mode inventory,
+    // the first item inside the bundle is deleted, rather than the entire bundle.
+    @Inject(
+            method = "slotClicked",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/screens/inventory/CreativeModeInventoryScreen$ItemPickerMenu;setCarried(Lnet/minecraft/world/item/ItemStack;)V"
+            ),
+            cancellable = true
+    )
+    private void deleteFirstBundleItemOnTrash(Slot slot, int i, int j, ClickType clickType, CallbackInfo ci) {
+        // Fall through to vanilla, which is deleting the entire item, if the item is not a bundle, or the bundle itself is attempted to be placed on the X icon.
+        // If the bundle is empty and its contents are attempted to be placed on the X icon, do nothing, just like with other slots.
+        // That way, you can quickly empty bundles without also deleting the bundle itself, mirroring drop behaviour.
+        ItemStack stack = this.menu.getCarried();
+        if (!(stack.getItem() instanceof BundleItem)) return;
+        BundleContents contents = stack.get(DataComponents.BUNDLE_CONTENTS);
+        if (UnboundleConfig.config().clickBehaviour == UnboundleConfig.ClickBehaviour.PRIMARY_CONTENTS ? j == 1 : j == 0) return;
+        if (contents == null) return;
+        if (contents.isEmpty()) {
+            ci.cancel();
+            return;
+        }
+
+        // Remove the first stack inside the bundle
+        BundleContents.Mutable mutable = new BundleContents.Mutable(contents);
+        mutable.toggleSelectedItem(0);
+        mutable.removeOne();
+        stack.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
+
+        // Prevents vanilla from deleting the bundle itself right afterward.
+        ci.cancel();
+    }
 }
