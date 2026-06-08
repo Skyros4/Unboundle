@@ -43,12 +43,12 @@ Combine that with the keybind toggle to switch between sequential and random ite
 ![Random item usage demo](assets/random-item-usage.gif)
 </details>
 
-Insert items as a separate stack with a shift-click, and take advantage of recursive bundles to go insane with item distribution!
+Insert items as a separate stack with a shift-click, and take advantage of nested bundles to go insane with item distribution!
 
 <details>
-  <summary><strong>See recursive bundles in action</strong></summary>
+  <summary><strong>See nested bundles in action</strong></summary>
 
-![Recursive bundle demo](assets/recursive-bundle.gif)
+![Nested bundle demo](assets/nested-bundle.gif)
 </details>
 
 The drop key now drops the items out of the bundle, and CTRL & drop drops the bundle item itself.
