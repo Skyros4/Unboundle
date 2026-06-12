@@ -69,6 +69,18 @@ Because of this realization, I decided to add an optional setting that isolates 
 Pressing the drop key on an empty bundle does nothing, so that the player can hold down the drop key to quickly empty the bundle onto the ground without also throwing the bundle itself after the items.
 CTRL & drop then allows for dropping the entire bundle itself (including empty ones).
 
+In vanilla Minecraft, there is no way to automate emptying bundles. 
+The contents of a bundle can only be removed through player interaction.
+That is why dispensers were made to drop a bundle's contents, one by one. 
+Even items that normally have a different behaviour inside dispensers, for example water buckets, are dropped when inside a bundle.
+The reason for this is that every single item should be extractable out of bundles. 
+If the player wanted to, say, place water out of a bundle out of a dispenser, they can chain multiple dispensers together to achieve their desired effect.
+
+Dispensers were chosen as the way to empty bundles because it is a block with very specific interactions with items. 
+In existing redstone contraptions, only a select few items ever find their way into dispensers, so that their specific interaction can be taken advantage of.
+This means bundles wouldn't normally interact with dispensers, and therefore existing redstone contraptions would be unlikely to break with this change.
+For the general use case of dropping items, including bundles, the dropper would have come into play, which remains unchanged in dropping the bundle itself.
+
 ## Functional items in bundles
 
 At first only blocks were intended to be supported to be used out of bundles, but as the technical architecture gradually developed, more and more items came along. 

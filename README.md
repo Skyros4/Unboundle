@@ -53,7 +53,7 @@ Insert items as a separate stack with a shift-click, and take advantage of neste
 
 The drop key now drops the items out of the bundle, and CTRL & drop drops the bundle item itself.
 
-Want to automate emptying bundles? Droppers can now look inside bundles and drop their contents.
+Want to automate emptying bundles? Dispensers can now look inside bundles and drop their contents.
 
 ## Unsupported items
 
