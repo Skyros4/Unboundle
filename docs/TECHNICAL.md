@@ -58,6 +58,9 @@ If not, the placement is reverted retroactively.
 In this sense, the client predicts the actual placement.
 Dropping items is the exception here, as that is handled generically for items by two different classes, LocalPlayer and ServerPlayer, hence the two mixins.
 
+Instead of mixing into the DispenserBlock class for the automated emptying feature, the built-in DispenseItemBehavior registries is used. 
+This naturally hooks into the system Vanilla uses for item-specific dispenser behaviour and just adds bundles as a new edge case alongside the others. 
+
 ### Item usage from within bundles
 
 The method applyAsSelectedItem() sits at the center of this mod's bundle item usage pipeline. 
