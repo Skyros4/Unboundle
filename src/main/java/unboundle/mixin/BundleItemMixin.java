@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -16,6 +17,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.entity.SignText;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Opcodes;
@@ -191,12 +193,22 @@ public abstract class BundleItemMixin extends Item implements SignApplicator {
                 : InteractionHand.OFF_HAND;
 
         // Slightly hackier way to make tryApplyToSign adapt to the general "take item out of bundle, use item, put item back in" pattern.
-        // If selectedItem.tryApplyToSign() succeeds, we set the InteractionResult to SUCCESS, and test against that when applyAsSelectedItem() finishes.
+        // Because SignBlock hardcodes the aftermath of the interaction, it is replicated here as well.
+        // If applicator.tryApplyToSign() succeeds, we set the InteractionResult to SUCCESS, and test against that when applyAsSelectedItem() finishes.
         // That way we can carry the boolean result through the InteractionResult pipeline up to this point.
         return BundleUsageContext.applyAsSelectedItem(player, interactionHand,
-                (selectedItem) -> ((SignApplicator)selectedItem.getItem()).tryApplyToSign(level, signBlockEntity, bl, player)
-                        ? InteractionResult.SUCCESS
-                        : InteractionResult.PASS,
+                (selectedItem) -> {
+                    if (selectedItem.getItem() instanceof SignApplicator applicator
+                    && level instanceof ServerLevel serverLevel
+                    && applicator.tryApplyToSign(level, signBlockEntity, bl, player)) {
+                        signBlockEntity.executeClickCommandsIfPresent(serverLevel, player, signBlockEntity.getBlockPos(), bl);
+                        player.awardStat(net.minecraft.stats.Stats.ITEM_USED.get(selectedItem.getItem()));
+                        serverLevel.gameEvent(GameEvent.BLOCK_CHANGE, signBlockEntity.getBlockPos(), GameEvent.Context.of(player, signBlockEntity.getBlockState()));
+                        selectedItem.consume(1, player);
+                        return InteractionResult.SUCCESS;
+                    }
+                    return InteractionResult.PASS;
+                },
                 (stack) -> stack.getItem() instanceof SignApplicator
         ) == InteractionResult.SUCCESS;
     }
@@ -220,9 +232,7 @@ public abstract class BundleItemMixin extends Item implements SignApplicator {
         ItemStack selectedItem = contents.getItemUnsafe(selectedItemIndex);
 
         // canApplyToSign now applies to selectedItem rather than the bundle.
-        if (selectedItem.getItem() instanceof SignApplicator applicator) {
-            return applicator.canApplyToSign(signText, player);
-        }
+        if (selectedItem.getItem() instanceof SignApplicator applicator) return applicator.canApplyToSign(signText, player);
         return false;
     }
 }
