@@ -10,7 +10,6 @@ import net.minecraft.world.item.BundleItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.SignBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.phys.BlockHitResult;
 import org.spongepowered.asm.mixin.Mixin;
@@ -26,11 +25,14 @@ public abstract class BlockStateBaseMixin {
     private InteractionResult useItemOn$delegateToContents(
             ItemStack itemStack, Level level, Player player, InteractionHand interactionHand,
             BlockHitResult blockHitResult, Operation<InteractionResult> original) {
-        // Items other than non-empty bundles proceed as normal. Signs too so that tryApplyToSign() in BundleItem is not interfered with.
+        // Items other than non-empty bundles proceed as normal.
+        // If the vanilla bundle would have had an interaction (for example with shelves), perform that one instead.
         ItemStack bundleItem = player.getItemInHand(interactionHand).copy();
-        if (!(bundleItem.getItem() instanceof BundleItem) || level.getBlockState(blockHitResult.getBlockPos()).getBlock() instanceof SignBlock) return original.call(itemStack, level, player, interactionHand, blockHitResult);
+        if (!(bundleItem.getItem() instanceof BundleItem)) return original.call(itemStack, level, player, interactionHand, blockHitResult);
         BundleContents contents = bundleItem.get(DataComponents.BUNDLE_CONTENTS);
         if (contents == null || contents.isEmpty()) return original.call(itemStack, level, player, interactionHand, blockHitResult);
+        InteractionResult vanillaResult = original.call(itemStack, level, player, interactionHand, blockHitResult);
+        if (vanillaResult.consumesAction()) return vanillaResult;
 
         // Applies the general "take item out of bundle, use item, put item back in" pattern.
         return BundleUsageContext.applyAsSelectedItem(player, interactionHand,

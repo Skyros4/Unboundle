@@ -6,7 +6,6 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.decoration.HangingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BundleItem;
 import net.minecraft.world.item.ItemStack;
@@ -28,11 +27,14 @@ public class PlayerMixin extends Avatar {
     @WrapMethod(method = "interactOn")
     private InteractionResult interactOn$handleBundle(
             Entity entity, InteractionHand interactionHand, Operation<InteractionResult> original) {
-        // Items other than non-empty bundles proceed as normal. Also when interacting with item frames (HangingEntity), the bundle itself should be put in there.
+        // Items other than non-empty bundles proceed as normal.
+        // If the vanilla bundle would have had an interaction (for example with item frames), perform that one instead.
         ItemStack bundleItem = this.getItemInHand(interactionHand).copy();
-        if (!(bundleItem.getItem() instanceof BundleItem) || entity instanceof HangingEntity) return original.call(entity, interactionHand);
+        if (!(bundleItem.getItem() instanceof BundleItem)) return original.call(entity, interactionHand);
         BundleContents contents = bundleItem.get(DataComponents.BUNDLE_CONTENTS);
         if (contents == null || contents.isEmpty()) return original.call(entity, interactionHand);
+        InteractionResult vanillaResult = original.call(entity, interactionHand);
+        if (vanillaResult.consumesAction()) return vanillaResult;
 
         // Applies the general "take item out of bundle, use item, put item back in" pattern.
         return BundleUsageContext.applyAsSelectedItem(((Player)(Object)this), interactionHand,

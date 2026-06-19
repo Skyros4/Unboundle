@@ -25,10 +25,13 @@ public class ArmorStandMixin {
     private InteractionResult interactAt$delegateToContents(
             Player player, Vec3 vec3, InteractionHand interactionHand, Operation<InteractionResult> original) {
         // Items other than non-empty bundles proceed as normal.
+        // If the vanilla bundle would have had an interaction, perform that one instead.
         ItemStack bundleItem = player.getItemInHand(interactionHand).copy();
         if (!(bundleItem.getItem() instanceof BundleItem)) return original.call(player, vec3, interactionHand);
         BundleContents contents = bundleItem.get(DataComponents.BUNDLE_CONTENTS);
         if (contents == null || contents.isEmpty()) return original.call(player, vec3, interactionHand);
+        InteractionResult vanillaResult = original.call(player, vec3, interactionHand);
+        if (vanillaResult.consumesAction()) return vanillaResult;
 
         // Applies the general "take item out of bundle, use item, put item back in" pattern.
         return BundleUsageContext.applyAsSelectedItem(player, interactionHand,
