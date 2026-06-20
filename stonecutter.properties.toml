@@ -1,0 +1,24 @@
+# See https://stonecutter.kikugie.dev/wiki/config/properties#centralized-properties
+mod.id = "unboundle"
+mod.name = "Unboundle"
+mod.group = "unboundle"
+mod.version = "1.0.0"
+
+deps.fabric_loader = "0.19.2"
+loomx.loom_version = "1.17-SNAPSHOT"
+
+["1.21.9"]
+mod.mc_compat = "1.21.9"
+mod.mc_releases = ["1.21.9", "1.21.10"]
+
+deps.fabric_api = "0.134.1+1.21.9"
+deps.cloth_config = "20.0.149"
+deps.modmenu = "16.0.0"
+
+["1.21.10"]
+mod.mc_compat = "1.21.10"
+mod.mc_releases = ["1.21.10"]
+
+deps.fabric_api = "0.138.4+1.21.10"
+deps.cloth_config = "20.0.149"
+deps.modmenu = "16.0.0"
