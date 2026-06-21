@@ -32,7 +32,6 @@ repositories {
     strictMaven("https://api.modrinth.com/maven", "Modrinth", "maven.modrinth")
     maven("https://maven.shedaniel.me/")
     maven("https://maven.terraformersmc.com/releases/")
-
 }
 
 dependencies {
@@ -46,7 +45,9 @@ dependencies {
 
     minecraft("com.mojang:minecraft:${sc.current.version}")
     // Applies Mojang Mappings on obfuscated versions
-    loomx.applyMojangMappings()
+    if (sc.current.parsed < "26.1") {
+        loomx.applyMojangMappings()
+    }
 
     modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
 
@@ -75,6 +76,20 @@ loom {
         generateRunConfig = true
         runDirectory = rootProject.file("run") // Shares the run directory between versions
         jvmArguments.add("-Dmixin.debug.export=true") // Exports transformed classes for debugging
+    }
+}
+
+sourceSets {
+    listOf("main", "client").forEach { name ->
+        named(name) {
+            java {
+                if (sc.current.parsed >= "26.1") {
+                    srcDir("src/$name/java-26.1+")
+                } else {
+                    srcDir("src/$name/java-1.21.x")
+                }
+            }
+        }
     }
 }
 

@@ -2,6 +2,10 @@ package unboundle.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.mojang.serialization.DataResult;
+//? if >=26.1 {
+/*import net.minecraft.world.item.ItemInstance;
+*///?}
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.math.Fraction;
 import org.spongepowered.asm.mixin.injection.At;
@@ -15,6 +19,21 @@ import unboundle.UnboundleConfig;
 @Mixin(BundleContents.class)
 public class BundleContentsMixin {
 
+    //? if >= 26.1 {
+    /*@Inject(
+            method = "getWeight(Lnet/minecraft/world/item/ItemInstance;)Lcom/mojang/serialization/DataResult;",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/item/ItemInstance;getOrDefault(Lnet/minecraft/core/component/DataComponentType;Ljava/lang/Object;)Ljava/lang/Object;"
+            ),
+            cancellable = true
+    ) // Changes unstackables' weight to 16/64 for convenience
+    private static void getWeight(ItemInstance item, CallbackInfoReturnable<DataResult<Fraction>> cir) {
+        if (item.getMaxStackSize() == 1) {
+            cir.setReturnValue(DataResult.success(Fraction.getFraction(1, 4)));
+        }
+    }
+    *///?} else {
     @Inject(
             method = "getWeight(Lnet/minecraft/world/item/ItemStack;)Lorg/apache/commons/lang3/math/Fraction;",
             at = @At(
@@ -28,6 +47,7 @@ public class BundleContentsMixin {
             cir.setReturnValue(Fraction.getFraction(1, 4));
         }
     }
+     //?}
 
     /**
      * @author Skyros4

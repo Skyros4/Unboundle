@@ -186,7 +186,11 @@ public abstract class BundleItemMixin extends Item implements SignApplicator {
 
     // Implements SignApplicator to be able to use the bundle's contents on signs.
     @Override
+    //? if >= 26.1 {
+    /*public boolean tryApplyToSign(Level level, SignBlockEntity signBlockEntity, boolean bl, ItemStack item, Player player) {
+    *///?} else {
     public boolean tryApplyToSign(Level level, SignBlockEntity signBlockEntity, boolean bl, Player player) {
+     //?}
         // Determine the player's hand that just used the bundle. We know a bundle was used because we're here in BundleItem.class.
         InteractionHand interactionHand = player.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof BundleItem
                 ? InteractionHand.MAIN_HAND
@@ -200,7 +204,11 @@ public abstract class BundleItemMixin extends Item implements SignApplicator {
                 (selectedItem) -> {
                     if (selectedItem.getItem() instanceof SignApplicator applicator
                     && level instanceof ServerLevel serverLevel
+                    //? if >= 26.1 {
+                    /*&& applicator.tryApplyToSign(level, signBlockEntity, bl, selectedItem, player)) {
+                    *///?} else {
                     && applicator.tryApplyToSign(level, signBlockEntity, bl, player)) {
+                     //?}
                         signBlockEntity.executeClickCommandsIfPresent(serverLevel, player, signBlockEntity.getBlockPos(), bl);
                         player.awardStat(net.minecraft.stats.Stats.ITEM_USED.get(selectedItem.getItem()));
                         serverLevel.gameEvent(GameEvent.BLOCK_CHANGE, signBlockEntity.getBlockPos(), GameEvent.Context.of(player, signBlockEntity.getBlockState()));
@@ -215,7 +223,11 @@ public abstract class BundleItemMixin extends Item implements SignApplicator {
 
     // Part of SignApplicator. Reads the selectedItem from the bundle and applies its canApplyToSign()
     @Override
+    //? if >= 26.1 {
+    /*public boolean canApplyToSign(SignText signText, ItemStack item, Player player) {
+    *///?} else {
     public boolean canApplyToSign(SignText signText, Player player) {
+     //?}
         // Determine the player's hand that just used the bundle. We know a bundle was used because we're here in BundleItem.class.
         // Then, look only at non-empty bundles.
         InteractionHand hand = player.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof BundleItem
@@ -229,10 +241,15 @@ public abstract class BundleItemMixin extends Item implements SignApplicator {
         // the selectedItemIndex value is just read and not written, contrary to what happens in BundleUsageContext.getSelectedItemIndex().
         long randomHash = bundleItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getLong("randomHash").orElse(0L);
         int selectedItemIndex = UnboundleConfig.config().itemUsageMode == UnboundleConfig.ItemUsageMode.RANDOM ? new Random(randomHash).nextInt(contents.size()) : 0;
-        ItemStack selectedItem = contents.getItemUnsafe(selectedItemIndex);
-
+        //? if >= 26.1 {
+        /*ItemStack selectedItem = contents.items().get(selectedItemIndex).create().copy();
+        // canApplyToSign now applies to selectedItem rather than the bundle.
+        if (selectedItem.getItem() instanceof SignApplicator applicator) return applicator.canApplyToSign(signText, selectedItem, player);
+        *///?} else {
+        ItemStack selectedItem = contents.getItemUnsafe(selectedItemIndex).copy();
         // canApplyToSign now applies to selectedItem rather than the bundle.
         if (selectedItem.getItem() instanceof SignApplicator applicator) return applicator.canApplyToSign(signText, player);
+         //?}
         return false;
     }
 }

@@ -52,7 +52,6 @@ public class BundleMouseActionsMixin {
         // The change here is: Cap the scrolling speed. Math.signum detects the sign of vector2i, and returns either 1.0, 0.0 or -1.0 respectively.
         // That way scrolling past the currently shown window by traveling multiple slots in 1 frame is not possible.
         // Both directions are reversed so that down and right are 1, and up and left are -1.
-        // Corresponds to k in the deobfuscated code.
         int scrollDirection = vector2i.y != 0 ? (int) Math.signum(-vector2i.y) : (int) Math.signum(vector2i.x);
 
         // ***get the current state of the bundle UI***
@@ -63,11 +62,13 @@ public class BundleMouseActionsMixin {
         // These indexes are relative to entire list, not the current window
         int currentItemsToShowStart = BundleTooltipContext.getItemsToShowStart(bundleContents.size());
         int currentItemsToShowEnd = BundleTooltipContext.getItemsToShowEnd(bundleContents.size(), bundleContents.getNumberOfItemsToShow());
-        // Corresponds to l in the deobfuscated code.
+        //? if >= 26.1 {
+        /*int currentlySelected = BundleItem.getSelectedItemIndex(bundleItemStack);
+        *///?} else {
         int currentlySelected = BundleItem.getSelectedItem(bundleItemStack);
+         //?}
         // scrollDirection is negated because renderBundleWithItemsTooltip within ClientBundleTooltip renders the items from bottom right to top left,
         // so forward (the index increases) would actually be up left, when we want it to be down right.
-        // Corresponds to m in the deobfuscated code.
         int newSelected = ScrollWheelHandler.getNextScrollWheelSelection(-scrollDirection, currentlySelected, totalItems);
 
         // ***The four special cases where either a row scroll or a wrap around occurs***
@@ -104,7 +105,7 @@ public class BundleMouseActionsMixin {
             this.toggleSelectedBundleItem(bundleItemStack, i, newSelected);
         }
 
-//        // the amount of items to be displayed in the current window. Corresponds to j in the deobfuscated code. For Logging purposes, see below
+//        // the amount of items to be displayed in the current window. For Logging purposes, see below
 //        int numberOfItemsToShow = BundleItem.getNumberOfItemsToShow(bundleItemStack);
 //        // The only difference to currentItemsToShow is that these are computed after the rowOffset has been updated.
 //        // So these represent the new indexes for the window after a row scroll.

@@ -1,8 +1,7 @@
 package unboundle.mixin;
 
-import com.llamalad7.mixinextras.expression.Definition;
-import com.llamalad7.mixinextras.expression.Expression;
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -36,14 +35,13 @@ public class BundleContentsMutableMixin {
 
     // If the item on the cursor is already present in the bundle,
     // holding Shift no longer adds the new item to the existing stack, resulting in it being added as a new stack.
-    @Definition(id = "j", local = @Local(type = int.class, ordinal = 1))
-    @Expression("j != -1")
-    @ModifyExpressionValue(
+    @WrapOperation(
             method = "tryInsert(Lnet/minecraft/world/item/ItemStack;)I",
-            at = @At("MIXINEXTRAS:EXPRESSION")
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/component/BundleContents$Mutable;findStackIndex(Lnet/minecraft/world/item/ItemStack;)I")
     )
-    private boolean disableOriginalBehaviourForSeparateInsertion(boolean original) {
-        return original && !BundleTooltipContext.shiftClick;
+    private int disableOriginalBehaviourForSeparateInsertion(BundleContents.Mutable instance, ItemStack itemStack, Operation<Integer> original) {
+        if (BundleTooltipContext.shiftClick) return -1;
+        return original.call(instance, itemStack);
     }
 
     // When adding an item to the bundle, and there's already an item of the same type already present in there,

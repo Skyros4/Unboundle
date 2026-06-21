@@ -26,9 +26,18 @@ public class ServerPlayerMixin {
         return null;
     }
 
-    @WrapMethod(
-            method = "drop(Z)Z"
-    )
+    //? if >= 1.21.11 {
+    /*@WrapMethod(method = "drop(Z)V")
+    private void validateDropContents(boolean isStackDropped, Operation<Void> original) {
+        // if not a bundle OR if a bundle and CTRL & drop was pressed, execute vanilla method. if empty, prevent drop.
+        // The latter is done so that players can safely rid the bundle of its contents by holding down the drop key, without also dropping the bundle itself.
+        ServerPlayer serverPlayer = (ServerPlayer) (Object) this;
+        ItemStack heldStack = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
+        if (!(heldStack.getItem() instanceof BundleItem) || isStackDropped) { original.call(isStackDropped); return; }
+        BundleContents contents = heldStack.get(DataComponents.BUNDLE_CONTENTS);
+        if (contents == null || contents.isEmpty()) return;
+    *///?} else {
+    @WrapMethod(method = "drop(Z)Z")
     private boolean validateDropContents(boolean isStackDropped, Operation<Boolean> original) {
         // if not a bundle OR if a bundle and CTRL & drop was pressed, execute vanilla method. if empty, prevent drop.
         // The latter is done so that players can safely rid the bundle of its contents by holding down the drop key, without also dropping the bundle itself.
@@ -37,7 +46,7 @@ public class ServerPlayerMixin {
         if (!(heldStack.getItem() instanceof BundleItem) || isStackDropped) return original.call(isStackDropped);
         BundleContents contents = heldStack.get(DataComponents.BUNDLE_CONTENTS);
         if (contents == null || contents.isEmpty()) return false;
-
+    //?}
         BundleContents.Mutable mutable = new BundleContents.Mutable(contents);
         // If itemUsageMode == RANDOM, use a field in the bundle's DataComponents to determine randomness, then use that random value to toggle the selected item.
         // Done with DataComponents so that client and server can individually generate their own random value,
@@ -63,6 +72,10 @@ public class ServerPlayerMixin {
         ItemStack selectedItem = mutable.removeOne();
         heldStack.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
         serverPlayer.setItemInHand(InteractionHand.MAIN_HAND, heldStack);
+        //? if >= 1.21.11 {
+        /*this.drop(selectedItem, false, true);
+        *///?} else {
         return this.drop(selectedItem, false, true) != null;
+        //?}
     }
 }

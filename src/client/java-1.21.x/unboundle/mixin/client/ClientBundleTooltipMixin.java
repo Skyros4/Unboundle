@@ -105,10 +105,9 @@ public class ClientBundleTooltipMixin {
     // Furthermore, adds support for the top left counter when scrolling rows.
     // WrapMethod is used as I haven't found a clean way to add a new elseif for shouldRenderSurplusTextTopLeft otherwise.
     @WrapMethod(method = "renderBundleWithItemsTooltip(Lnet/minecraft/client/gui/Font;IIIILnet/minecraft/client/gui/GuiGraphics;)V")
-    private void addTopLeftCounter(Font font, int i, int j, int k, int l, GuiGraphics guiGraphics, Operation<Void> original) {
+    private void addTopLeftCounter(Font font, int x, int y, int w, int h, GuiGraphics guiGraphics, Operation<Void> original) {
         // Contains a sublist of this.contents, with the items to be currently displayed
         List<ItemStack> list = this.getShownItems(this.contents.getNumberOfItemsToShow());
-
         int itemsToShowStart = BundleTooltipContext.getItemsToShowStart(this.contents.size());
         int itemsToShowEnd = BundleTooltipContext.getItemsToShowEnd(this.contents.size(), this.contents.getNumberOfItemsToShow());
         // These two booleans control whether the top left and bottom right counter should be rendered
@@ -119,45 +118,43 @@ public class ClientBundleTooltipMixin {
 //        LOGGER.info("getNumberOfItemsToShow(): {} | itemsToShowStart: {} | itemsToShowEnd: {} | rowOffset: {}",
 //                this.contents.getNumberOfItemsToShow(), itemsToShowStart, itemsToShowEnd, BundleTooltipContext.rowOffset);
 
-        // (slotIndex, j) is the top left edge of the tooltip. (startX, startY) is the bottom right edge
-        // k is the total width of the grid. So it is effectively == gridWidth, which means this.getContentXOffset(k) always returns 0.
-        // l is unused.
-        int startX = i + this.getContentXOffset(k) + gridWidth;
-        int startY = j + this.gridSizeY() * SLOT_SIZE;
+        // (slotIndex, y) is the top left edge of the tooltip. (startX, startY) is the bottom right edge
+        // w is the total width of the grid. So it is effectively == gridWidth, which means this.getContentXOffset(k) always returns 0.
+        // h is unused.
+        int startX = x + this.getContentXOffset(w) + gridWidth;
+        int startY = y + this.gridSizeY() * SLOT_SIZE;
         // slotIndex is used to keep track of where in the list we are
         int slotIndex = 1;
         // ... because we want to iterate over the shown items from bottom right to top left,
         // so that the oldest items are shown in the bottom right and the newest items in the top left.
         for (int row = 1; row <= this.gridSizeY(); row++) {
             for (int col = 1; col <= UnboundleConfig.config().columns; col++) {
-                // (x, y) is the top left edge of the individual slot to render.
-                int x = startX - col * SLOT_SIZE;
-                int y = startY - row * SLOT_SIZE;
+                // (loopX, loopY) is the top left edge of the individual slot to render.
+                int loopX = startX - col * SLOT_SIZE;
+                int loopY = startY - row * SLOT_SIZE;
                 // Checks if we're at the bottom right slot, and if we need to draw a counter there.
                 if (shouldRenderSurplusText(hiddenBelow, col, row)) {
-                    renderCount(x, y, this.getAmountOfHiddenItems(list), font, guiGraphics);
+                    renderCount(loopX, loopY, this.getAmountOfHiddenItems(list), font, guiGraphics);
                 }
                 // Checks if we're at the top left slot, and if we need to draw a counter there.
                 else if (shouldRenderSurplusTextTopLeft(hiddenAbove, col, row)) {
-                    renderCount(x, y, this.getAmountOfHiddenItemsForTopLeft(), font, guiGraphics);
+                    renderCount(loopX, loopY, this.getAmountOfHiddenItemsForTopLeft(), font, guiGraphics);
                 }
                 // Otherwise, draw item if we're not at the end of the list already
                 else if (shouldRenderItemSlot(list, slotIndex)){
-                    this.renderSlot(slotIndex, x, y, list, slotIndex, font, guiGraphics);
+                    this.renderSlot(slotIndex, loopX, loopY, list, slotIndex, font, guiGraphics);
                     slotIndex++;
                 }
             }
         }
 
         // Draws the item name above the bundle tooltip, and the progress bar below the item grid.
-        this.drawSelectedItemTooltip(font, guiGraphics, i, j, k);
-        this.drawProgressbar(i + this.getContentXOffset(k), j + this.itemGridHeight() + SLOT_MARGIN, font, guiGraphics);
+        this.drawSelectedItemTooltip(font, guiGraphics, x, y, w);
+        this.drawProgressbar(x + this.getContentXOffset(w), y + this.itemGridHeight() + SLOT_MARGIN, font, guiGraphics);
     }
 
     @Shadow
-    private List<ItemStack> getShownItems(int numberOfItemsToShow) {
-        return null;
-    }
+    private List<ItemStack> getShownItems(int numberOfItemsToShow) { return null;}
     // Now dynamically moves the subsection of items to show through the entire list of contents of the bundle as you scroll through it
     @WrapMethod(method = "getShownItems(I)Ljava/util/List;")
     private List<ItemStack> dynamicItemWindows(int numberOfItemsToShow, Operation<List<ItemStack>> original) {
@@ -183,9 +180,8 @@ public class ClientBundleTooltipMixin {
     private static boolean shouldRenderItemSlot(List<ItemStack> list, int i) { return false; }
 
     @Shadow
-    private int getAmountOfHiddenItems(List<ItemStack> list) {
-        return 0;
-    }
+    private int getAmountOfHiddenItems(List<ItemStack> list) { return 0; }
+
     // Adjusts the amount of hidden items below to become smaller as you scroll down rows.
     @ModifyReturnValue(
             method = "getAmountOfHiddenItems(Ljava/util/List;)I",
@@ -208,6 +204,7 @@ public class ClientBundleTooltipMixin {
 
     @Shadow
     private void renderSlot(int slotIndex, int j, int k, List<ItemStack> list, int slotIndex2, Font font, GuiGraphics guiGraphics) {}
+
     // Adds shadows to 16-stackables and unstackables to make them subtly visually distinct from the usual 64-stackable items.
     // Also replaces the hardcoded values to provide support for a flexible configuration of the bundle tooltip.
     @WrapMethod(method = "renderSlot(IIILjava/util/List;ILnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphics;)V")
@@ -258,6 +255,7 @@ public class ClientBundleTooltipMixin {
 
     @Shadow
     private void drawProgressbar(int i, int j, Font font, GuiGraphics guiGraphics) {}
+
     // Replaces the hardcoded values to provide support for a flexible configuration of the progress bar width.
     @ModifyArg(
             method = "drawProgressbar(IILnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphics;)V",
@@ -291,12 +289,6 @@ public class ClientBundleTooltipMixin {
         return progressBarWidth;
     }
 
-    // Replaces the hardcoded value to provide support for a flexible configuration of the progress bar width.
-    @ModifyConstant(method = "getEmptyBundleDescriptionTextHeight(Lnet/minecraft/client/gui/Font;)I", constant = @Constant(intValue = 96))
-    private static int getEmptyBundleDescriptionTextHeight$dynamicProgressBarWidth(int original) {
-        return progressBarWidth;
-    }
-
     // Replaces the hardcoded value to provide support for a flexible configuration of the progress bar width and therefore maximum fill width.
     @ModifyConstant(method = "getProgressBarFill()I", constant = @Constant(intValue = 94))
     private static int getProgressBarFill$dynamicProgressBarMargin(int original) {
@@ -317,5 +309,11 @@ public class ClientBundleTooltipMixin {
                     Mth.mulAndTruncate(this.contents.weight(), 64)
             )));
         }
+    }
+
+    // Replaces the hardcoded value to provide support for a flexible configuration of the progress bar width.
+    @ModifyConstant(method = "getEmptyBundleDescriptionTextHeight(Lnet/minecraft/client/gui/Font;)I", constant = @Constant(intValue = 96))
+    private static int getEmptyBundleDescriptionTextHeight$dynamicProgressBarWidth(int original) {
+        return progressBarWidth;
     }
 }

@@ -15,7 +15,11 @@ public class BundleDispenseItemBehavior extends DefaultDispenseItemBehavior {
 
 		// Extract the first item in the bundle
 		BundleContents.Mutable mutable = new BundleContents.Mutable(contents);
+		//? if >=26.1 {
+		/*ItemStack extracted = contents.items().getFirst().create().copy();
+		 *///?} else {
 		ItemStack extracted = contents.getItemUnsafe(0).copy();
+		//?}
 		mutable.toggleSelectedItem(0);
 		mutable.removeOne();
 

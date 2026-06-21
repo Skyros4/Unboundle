@@ -18,6 +18,9 @@ stonecutter parameters {
 
         string(current.parsed >= "26.1") {
             replace("classTweaker v1 named", "classTweaker v1 official")
+            // 26.1 changed client-side class names
+            replace("ClickType", "ContainerInput")
+            replace("GuiGraphics", "GuiGraphicsExtractor")
         }
     }
 }

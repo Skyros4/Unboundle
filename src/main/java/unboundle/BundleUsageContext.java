@@ -37,7 +37,11 @@ public class BundleUsageContext {
         if (contents == null || contents.isEmpty()) return InteractionResult.PASS; // allows for the use() fallback
 
         int selectedItemIndex = getSelectedItemIndex(bundleItem, contents);
+        //? if >=26.1 {
+        /*ItemStack selectedItem = contents.items().get(selectedItemIndex).create().copy();
+        *///?} else {
         ItemStack selectedItem = contents.getItemUnsafe(selectedItemIndex).copy();
+         //?}
 
         // Only items from the allowlists actually get used, the other items are rejected.
         InteractionResult result;
@@ -137,9 +141,17 @@ public class BundleUsageContext {
             // Deals with Firework Rockets and other outliers that use shrink() instead of consume().
             // shrink() actually attempts to reduce the item count even in Creative,
             // but the check for the item's slot in the creative inventory prevents that. Bundles bypass this check by nature.
-            transformedCopy = player.getAbilities().instabuild && !(selectedItem.getItem() instanceof BundleItem)
-                    ? contents.getItemUnsafe(UnboundleConfig.config().itemUsageMode == UnboundleConfig.ItemUsageMode.RANDOM ? randomIndex : 0).copy()
-                    : selectedItem.copy();
+            if (player.getAbilities().instabuild && !(selectedItem.getItem() instanceof BundleItem)) {
+                int selectedItemIndex = UnboundleConfig.config().itemUsageMode == UnboundleConfig.ItemUsageMode.RANDOM ? randomIndex : 0;
+                //? if >=26.1 {
+                /*transformedCopy = contents.items().get(selectedItemIndex).create().copy();
+                *///?} else {
+                transformedCopy = contents.getItemUnsafe(selectedItemIndex).copy();
+                 //?}
+            }
+            else{
+                transformedCopy = selectedItem.copy();
+            }
         }
         if (!transformedCopy.isEmpty()) {
             // Always inserts as a separate stack. That way, separate stacks are preserved, and unified stacks remain unaffected
