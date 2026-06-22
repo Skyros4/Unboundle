@@ -15,8 +15,11 @@ import org.spongepowered.asm.mixin.Mixin;
 import unboundle.BundleUsageContext;
 
 @Mixin(Player.class)
+//? if >= 1.21.9 {
 public class PlayerMixin extends Avatar {
-
+//?} else {
+/*public abstract class PlayerMixin extends LivingEntity {
+*///?}
     protected PlayerMixin(EntityType<? extends LivingEntity> entityType, Level level) {
         super(entityType, level);
     }

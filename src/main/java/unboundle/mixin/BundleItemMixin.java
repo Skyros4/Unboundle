@@ -158,10 +158,8 @@ public abstract class BundleItemMixin extends Item implements SignApplicator {
                 (selectedItem) -> {
                     // Creates a new context for the item to be used in, namely replacing the item to be used with the item within the bundle.
                     return selectedItem.useOn(new UseOnContext(
-                            useOnContext.getLevel(),
                             useOnContext.getPlayer(),
                             useOnContext.getHand(),
-                            selectedItem,
                             new BlockHitResult(
                                     useOnContext.getClickLocation(),
                                     useOnContext.getClickedFace(),
@@ -209,7 +207,11 @@ public abstract class BundleItemMixin extends Item implements SignApplicator {
                     *///?} else {
                     && applicator.tryApplyToSign(level, signBlockEntity, bl, player)) {
                      //?}
+                        //? if >= 1.21.6 {
                         signBlockEntity.executeClickCommandsIfPresent(serverLevel, player, signBlockEntity.getBlockPos(), bl);
+                         //?} else {
+                        /*signBlockEntity.executeClickCommandsIfPresent(player, serverLevel, signBlockEntity.getBlockPos(), bl);
+                        *///?}
                         player.awardStat(net.minecraft.stats.Stats.ITEM_USED.get(selectedItem.getItem()));
                         serverLevel.gameEvent(GameEvent.BLOCK_CHANGE, signBlockEntity.getBlockPos(), GameEvent.Context.of(player, signBlockEntity.getBlockState()));
                         selectedItem.consume(1, player);
@@ -239,7 +241,11 @@ public abstract class BundleItemMixin extends Item implements SignApplicator {
 
         // Because we're just getting the selectedItem and not actually using it,
         // the selectedItemIndex value is just read and not written, contrary to what happens in BundleUsageContext.getSelectedItemIndex().
+        //? if >= 1.21.5 {
         long randomHash = bundleItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getLong("randomHash").orElse(0L);
+        //?} else {
+        /*long randomHash = bundleItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getLong("randomHash");
+        *///?}
         int selectedItemIndex = UnboundleConfig.config().itemUsageMode == UnboundleConfig.ItemUsageMode.RANDOM ? new Random(randomHash).nextInt(contents.size()) : 0;
         //? if >= 26.1 {
         /*ItemStack selectedItem = contents.items().get(selectedItemIndex).create().copy();

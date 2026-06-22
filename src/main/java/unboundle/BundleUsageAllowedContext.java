@@ -123,6 +123,7 @@ public class BundleUsageAllowedContext {
             entry(PotionItem.class.getSimpleName(), true), // Consumption is excluded, see components. Only applies to useOn for water bottles.
             entry(ProjectileWeaponItem.class.getSimpleName(), false),
             entry(ShearsItem.class.getSimpleName(), true),
+            entry(ShieldItem.class.getSimpleName(), false), // Requires the item itself to be held visibly for protection.
             entry(ShovelItem.class.getSimpleName(), true),
             entry(SnowballItem.class.getSimpleName(), true),
             entry(SolidBucketItem.class.getSimpleName(), true),
@@ -139,7 +140,9 @@ public class BundleUsageAllowedContext {
     // Contains all item components that have a right-click functionality for documentation purposes. Acts as a blacklist.
     // Just like with the classes, items with any kind of prolonged usage generally do not work
     public static final Map<String, Boolean> USABLE_BY_COMPONENT = new TreeMap<>(Map.<String, Boolean>ofEntries(
-            entry(BundleUsageAllowedContext.getComponentName(DataComponents.BLOCKS_ATTACKS), false),
+            //? if >= 1.21.5 {
+            entry(BundleUsageAllowedContext.getComponentName(DataComponents.BLOCKS_ATTACKS), false), // equal to ShieldItem, for compatibility
+            //?}
             entry(BundleUsageAllowedContext.getComponentName(DataComponents.CONSUMABLE), false),
             entry(BundleUsageAllowedContext.getComponentName(DataComponents.EQUIPPABLE), true)
     ));

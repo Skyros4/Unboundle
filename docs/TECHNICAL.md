@@ -92,5 +92,14 @@ Examples include dyeing sheep, leashing mobs and feeding dogs.
 Corresponds to interactOn(), except with additional information for the exact position clicked on the entity. 
 Technically exists for any entity with Entity.interactAt(), but Armor Stands are the only one implementing this, and @Override the parent method. 
 
+## Version support
 
+Compared to other version differences, the ones between 1.21.11 and 26.1 were extensive.
+This version boundary marked the migration to unobfuscated source code.
+While this does make modding easier in the long run, 26.1 contained a lot of breaking changes.
 
+That is because Mojang decided to use this opportunity to refactor and restructure large parts of the codebase, alongside the unobfuscation.
+Concretely, a lot of renaming methods / classes, changing method signatures and wrapping data into the new ItemInstance and ItemStackTemplate was done. 
+
+Due to this, the Stonecutter framework handling version differences could no longer realistically and cleanly keep all the 1.21.11/26.1 differences in certain classes in one file.
+This is why separate folders were created, because keeping these classes unified with Stonecutter would have been hard to maintain.

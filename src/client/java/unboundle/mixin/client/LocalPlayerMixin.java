@@ -48,8 +48,11 @@ public class LocalPlayerMixin extends AbstractClientPlayer {
         // which is the same for both because they pull the seed from one shared location. Then they both generate a new seed, equal on both sides.
         if(UnboundleConfig.config().itemUsageMode == UnboundleConfig.ItemUsageMode.RANDOM) {
             // Read
-            long randomHash = heldStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY)
-                    .copyTag().getLong("randomHash").orElse(0L);
+            //? if >= 1.21.5 {
+            long randomHash = heldStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getLong("randomHash").orElse(0L);
+             //?} else {
+            /*long randomHash = heldStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getLong("randomHash");
+            *///?}
 
             int randomIndex = new Random(randomHash).nextInt(contents.size());
             // Write

@@ -11,7 +11,11 @@ import unboundle.BundleTooltipContext;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientBundleTooltip;
+//? if >= 1.21.6 {
 import net.minecraft.client.renderer.RenderPipelines;
+//?} else {
+/*import net.minecraft.client.renderer.RenderType;
+*///?}
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -223,6 +227,7 @@ public class ClientBundleTooltipMixin {
         // Determines the color of the shadow. If the high contrast texture pack is loaded, make it bright instead of dark for better visibility.
         int shadowTint = BundleTooltipContext.highContrast ? 0xFFFFFFFF : 0xFF000000;
         Fraction weight = ((BundleContentsAccessor)(Object) contents).invokeGetWeight(itemStack);
+        //? if >= 1.21.6 {
         // Soft check for 16/64 and above for unstackables, items with a high count and nested bundles with enough items.
         // These will get "heavy" in the bundle GUI
         if (weight.compareTo(Fraction.getFraction(16, 64)) >= 0) {
@@ -245,6 +250,30 @@ public class ClientBundleTooltipMixin {
             guiGraphics.renderItem(itemStack, j + SLOT_MARGIN, k + SLOT_MARGIN, slotIndex2);
             guiGraphics.renderItemDecorations(font, itemStack, j + SLOT_MARGIN, k + SLOT_MARGIN);
         }
+         //?} else {
+        /*// Soft check for 16/64 and above for unstackables, items with a high count and nested bundles with enough items.
+        // These will get "heavy" in the bundle GUI
+        if (weight.compareTo(Fraction.getFraction(16, 64)) >= 0) {
+            int shadowSize = SLOT_SIZE + 2;
+            guiGraphics.blitSprite(RenderType::guiTextured, SLOT_BACKGROUND_SPRITE, j, k, shadowSize, shadowSize, shadowTint);
+        }
+        // In the same vein, anything with a weight between 4/64 and 15/64 is considered "a little heavy".
+        else if (weight.compareTo(Fraction.getFraction(4, 64)) >= 0) {
+            int shadowSize = SLOT_SIZE + 1;
+            guiGraphics.blitSprite(RenderType::guiTextured, SLOT_BACKGROUND_SPRITE, j, k, shadowSize, shadowSize, shadowTint);
+        }
+
+        if (isSelected) { // if the item was selected
+            guiGraphics.blitSprite(RenderType::guiTextured, SLOT_HIGHLIGHT_BACK_SPRITE, j, k, SLOT_SIZE, SLOT_SIZE);
+            guiGraphics.renderItem(itemStack, j + SLOT_MARGIN, k + SLOT_MARGIN, slotIndex2);
+            guiGraphics.renderItemDecorations(font, itemStack, j + SLOT_MARGIN, k + SLOT_MARGIN);
+            guiGraphics.blitSprite(RenderType::guiTexturedOverlay, SLOT_HIGHLIGHT_FRONT_SPRITE, j, k, SLOT_SIZE, SLOT_SIZE);
+        } else{ // the default look of a slot
+            guiGraphics.blitSprite(RenderType::guiTextured, SLOT_BACKGROUND_SPRITE, j, k, SLOT_SIZE, SLOT_SIZE);
+            guiGraphics.renderItem(itemStack, j + SLOT_MARGIN, k + SLOT_MARGIN, slotIndex2);
+            guiGraphics.renderItemDecorations(font, itemStack, j + SLOT_MARGIN, k + SLOT_MARGIN);
+        }
+        *///?}
     }
 
     @Shadow
@@ -261,7 +290,11 @@ public class ClientBundleTooltipMixin {
             method = "drawProgressbar(IILnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphics;)V",
             at = @At(
                     value = "INVOKE",
+                    //? if >= 1.21.6 {
                     target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIII)V",
+                    //?} else {
+                    /*target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Ljava/util/function/Function;Lnet/minecraft/resources/ResourceLocation;IIII)V",
+                    *///?}
                     ordinal = 1
             ),
             index = 4

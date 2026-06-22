@@ -49,11 +49,8 @@ public class BundleContentsMixin {
     }
      //?}
 
-    /**
-     * @author Skyros4
-     * @reason Show however many items are in the bundle, until maxSlots().
-     *         Once the bundle starts overflowing, show either maxSlots() - 1 or maxSlots() - 2 items, depending on counters
-     */
+//    Show however many items are in the bundle, until maxSlots().
+//    Once the bundle starts overflowing, show either maxSlots() - 1 or maxSlots() - 2 items, depending on counters
     @WrapMethod(method = "getNumberOfItemsToShow()I")
     public int getNumberOfItemsToShow(Operation<Integer> original) {
         int totalSize = this.size();

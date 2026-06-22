@@ -80,7 +80,11 @@ public class BundleUsageContext {
         // which is the same for both because they pull the seed from one shared location. Then they both generate a new seed, equal on both sides.
         if(UnboundleConfig.config().itemUsageMode == UnboundleConfig.ItemUsageMode.RANDOM) {
             // Read
+            //? if >= 1.21.5 {
             long randomHash = bundleItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getLong("randomHash").orElse(0L);
+             //?} else {
+            /*long randomHash = bundleItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getLong("randomHash");
+            *///?}
 
             int selectedItemIndex = new Random(randomHash).nextInt(contents.size());
             // Write
