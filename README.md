@@ -28,7 +28,7 @@ Additionally, there's now a ModMenu setting to control how left and right click 
 <details>
   <summary><strong>Show settings</strong></summary>
 
-![Settings screen](assets/ModMenu-settings-screen.png)
+![Settings screen](assets/modmenu-settings-screen.png)
 </details>
 
 ## Item usage out of bundles
