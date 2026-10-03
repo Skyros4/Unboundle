@@ -85,8 +85,12 @@ public class BundleUsageAllowedContext {
     // General rule of thumb: Items with any kind of prolonged usage do not work, for both design and technical reasons.
     // Any entries omitted are items that either don't do anything on use, or that are subclasses of items listed here.
     public static final Map<String, Boolean> USABLE_BY_CLASS = new TreeMap<>(Map.<String, Boolean>ofEntries(
-            entry(ArmorStandItem.class.getSimpleName(), true),
+            //? if < 26.3 {
             entry(AxeItem.class.getSimpleName(), true),
+            entry(HoeItem.class.getSimpleName(), true),
+            entry(ShovelItem.class.getSimpleName(), true),
+            //?}
+            entry(ArmorStandItem.class.getSimpleName(), true),
             entry(BlockItem.class.getSimpleName(), true),
             entry(BoatItem.class.getSimpleName(), true),
             entry(BoneMealItem.class.getSimpleName(), true),
@@ -110,7 +114,6 @@ public class BundleUsageAllowedContext {
             entry(FoodOnAStickItem.class.getSimpleName(), false), // Requires the item itself to be held visibly for the mob to recognize the food.
             entry(GlowInkSacItem.class.getSimpleName(), true),
             entry(HangingEntityItem.class.getSimpleName(), true),
-            entry(HoeItem.class.getSimpleName(), true),
             entry(HoneycombItem.class.getSimpleName(), true),
             entry(InkSacItem.class.getSimpleName(), true),
             entry(InstrumentItem.class.getSimpleName(), true),
@@ -124,7 +127,6 @@ public class BundleUsageAllowedContext {
             entry(ProjectileWeaponItem.class.getSimpleName(), false),
             entry(ShearsItem.class.getSimpleName(), true),
             entry(ShieldItem.class.getSimpleName(), false), // Requires the item itself to be held visibly for protection.
-            entry(ShovelItem.class.getSimpleName(), true),
             entry(SnowballItem.class.getSimpleName(), true),
             entry(SolidBucketItem.class.getSimpleName(), true),
             entry(SpawnEggItem.class.getSimpleName(), true),

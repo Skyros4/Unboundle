@@ -4,7 +4,9 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.ResourceLocation;
+//? if < 26.3 {
 import org.lwjgl.glfw.GLFW;
+//?}
 
 public class UnboundleKeybinds {
 	public static KeyMapping toggleItemUsageMode;
@@ -17,8 +19,13 @@ public class UnboundleKeybinds {
 	public static void register() {
 		toggleItemUsageMode = KeyMappingHelper.registerKeyMapping(new KeyMapping(
 				"key.unboundle.toggleItemUsageMode",
+				//? if >= 26.3 {
+				/*InputConstants.Type.KEYBOARD,
+				InputConstants.UNKNOWN.getValue(),
+				*///?} else {
 				InputConstants.Type.KEYSYM,
 				GLFW.GLFW_KEY_UNKNOWN,
+				 //?}
 				UNBOUNDLE_CATEGORY
 		));
 	}

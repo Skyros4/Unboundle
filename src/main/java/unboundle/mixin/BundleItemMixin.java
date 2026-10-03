@@ -29,6 +29,9 @@ import unboundle.BundleTooltipContext;
 import unboundle.BundleUsageAllowedContext;
 import unboundle.BundleUsageContext;
 import unboundle.UnboundleConfig;
+//? if >= 26.3 {
+/*import net.minecraft.world.level.block.entity.SignTextSlot;
+ *///?}
 
 import java.util.Random;
 
@@ -184,7 +187,9 @@ public abstract class BundleItemMixin extends Item implements SignApplicator {
 
     // Implements SignApplicator to be able to use the bundle's contents on signs.
     @Override
-    //? if >= 26.1 {
+    //? if >= 26.3 {
+    /*public boolean tryApplyToSign(Level level, SignBlockEntity signBlockEntity, SignTextSlot slot, ItemStack item, Player player) {
+    *///? } else if >= 26.1 {
     /*public boolean tryApplyToSign(Level level, SignBlockEntity signBlockEntity, boolean bl, ItemStack item, Player player) {
     *///?} else {
     public boolean tryApplyToSign(Level level, SignBlockEntity signBlockEntity, boolean bl, Player player) {
@@ -202,12 +207,16 @@ public abstract class BundleItemMixin extends Item implements SignApplicator {
                 (selectedItem) -> {
                     if (selectedItem.getItem() instanceof SignApplicator applicator
                     && level instanceof ServerLevel serverLevel
-                    //? if >= 26.1 {
+                    //? if >= 26.3 {
+                    /*&& applicator.tryApplyToSign(level, signBlockEntity, slot, selectedItem, player)) {
+                    *///? } else if >= 26.1 {
                     /*&& applicator.tryApplyToSign(level, signBlockEntity, bl, selectedItem, player)) {
                     *///?} else {
                     && applicator.tryApplyToSign(level, signBlockEntity, bl, player)) {
                      //?}
-                        //? if >= 1.21.6 {
+                        //? if >= 26.3 {
+                        /*signBlockEntity.executeClickCommandsIfPresent(serverLevel, player, signBlockEntity.getBlockPos(), slot);
+                        *///? } else if >= 1.21.6 {
                         signBlockEntity.executeClickCommandsIfPresent(serverLevel, player, signBlockEntity.getBlockPos(), bl);
                          //?} else {
                         /*signBlockEntity.executeClickCommandsIfPresent(player, serverLevel, signBlockEntity.getBlockPos(), bl);
@@ -241,11 +250,7 @@ public abstract class BundleItemMixin extends Item implements SignApplicator {
 
         // Because we're just getting the selectedItem and not actually using it,
         // the selectedItemIndex value is just read and not written, contrary to what happens in BundleUsageContext.getSelectedItemIndex().
-        //? if >= 1.21.5 {
         long randomHash = bundleItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getLong("randomHash").orElse(0L);
-        //?} else {
-        /*long randomHash = bundleItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getLong("randomHash");
-        *///?}
         int selectedItemIndex = UnboundleConfig.config().itemUsageMode == UnboundleConfig.ItemUsageMode.RANDOM ? new Random(randomHash).nextInt(contents.size()) : 0;
         //? if >= 26.1 {
         /*ItemStack selectedItem = contents.items().get(selectedItemIndex).create().copy();

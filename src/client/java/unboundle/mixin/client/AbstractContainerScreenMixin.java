@@ -29,7 +29,7 @@ public abstract class AbstractContainerScreenMixin<T extends AbstractContainerMe
     // Prevent the vanilla safeguard of resetting selectedItem on QUICK_MOVE from firing if trying to insert as a separate item.
     // Applies to all screens except for CreativeModeInventoryScreen.
     @WrapWithCondition(
-            method = "slotClicked",
+            method = "slotClicked(Lnet/minecraft/world/inventory/Slot;IILnet/minecraft/world/inventory/ClickType;)V",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;onMouseClickAction(Lnet/minecraft/world/inventory/Slot;Lnet/minecraft/world/inventory/ClickType;)V"

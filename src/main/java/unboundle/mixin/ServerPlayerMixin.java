@@ -5,6 +5,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.BundleItem;
@@ -14,6 +16,9 @@ import net.minecraft.world.item.component.CustomData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import unboundle.UnboundleConfig;
+//? if >= 26.3 {
+/*import net.minecraft.util.Prediction;
+*///?}
 
 import java.util.Random;
 
@@ -22,7 +27,11 @@ import java.util.Random;
 public class ServerPlayerMixin {
 
     @Shadow
+    //? if >= 26.3 {
+    /*public ItemEntity drop(ItemStack itemStack, boolean bl, Prediction prediction) {
+    *///?} else {
     public ItemEntity drop(ItemStack itemStack, boolean bl, boolean bl2) {
+     //?}
         return null;
     }
 
@@ -53,11 +62,7 @@ public class ServerPlayerMixin {
         // which is the same for both because they pull the seed from one shared location. Then they both generate a new seed, equal on both sides.
         if(UnboundleConfig.config().itemUsageMode == UnboundleConfig.ItemUsageMode.RANDOM) {
             // Read
-            //? if >= 1.21.5 {
             long randomHash = heldStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getLong("randomHash").orElse(0L);
-             //?} else {
-            /*long randomHash = heldStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getLong("randomHash");
-            *///?}
             int randomIndex = new Random(randomHash).nextInt(contents.size());
             // Write
             CompoundTag tag = heldStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
@@ -75,7 +80,9 @@ public class ServerPlayerMixin {
         ItemStack selectedItem = mutable.removeOne();
         heldStack.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
         serverPlayer.setItemInHand(InteractionHand.MAIN_HAND, heldStack);
-        //? if >= 1.21.11 {
+        //? if >= 26.3 {
+        /*this.drop(selectedItem, false, Prediction.SERVER_ONLY);
+        *///?} else if >= 1.21.11 {
         /*this.drop(selectedItem, false, true);
         *///?} else {
         return this.drop(selectedItem, false, true) != null;

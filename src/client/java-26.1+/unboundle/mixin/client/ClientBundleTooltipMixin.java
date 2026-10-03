@@ -263,7 +263,11 @@ public class ClientBundleTooltipMixin {
             method = "extractProgressbar(IILnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphics;Lorg/apache/commons/lang3/math/Fraction;)V",
             at = @At(
                     value = "INVOKE",
+                    //? if >= 26.3 {
+                    /*target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIII)V",
+                    *///?} else {
                     target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIII)V",
+                     //?}
                     ordinal = 1
             ),
             index = 4

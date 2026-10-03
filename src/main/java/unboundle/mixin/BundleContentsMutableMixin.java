@@ -11,21 +11,30 @@ import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import unboundle.BundleTooltipContext;
 import unboundle.Unboundle;
 import unboundle.UnboundleConfig;
+//? if >= 26.3 {
+/*import net.minecraft.world.item.component.GrowableMutableContainer;
+*///?}
 
 import java.util.List;
 
 @Mixin(BundleContents.Mutable.class)
+//? if >= 26.3 {
+/*public abstract class BundleContentsMutableMixin extends GrowableMutableContainer<BundleContents> {
+    public BundleContentsMutableMixin(List<ItemStack> items) {
+        super(items);
+    }
+*///?} else {
 public class BundleContentsMutableMixin {
-
     @Mutable
     @Shadow @Final
     private List<ItemStack> items;
+ //?}
+
     @Shadow
     private int selectedItem;
 
@@ -46,45 +55,41 @@ public class BundleContentsMutableMixin {
 
     // When adding an item to the bundle, and there's already an item of the same type already present in there,
     // preserve the position of the latter instead of moving that item to the front.
-    @ModifyArg(
+    // Also make the slot visible in the current window, and select it.
+    @Redirect(
             method = "tryInsert(Lnet/minecraft/world/item/ItemStack;)I",
             at = @At(
                     value = "INVOKE",
+                    //? if >= 26.3 {
+                    /*target = "Ljava/util/List;addFirst(Ljava/lang/Object;)V",
+                    *///?} else {
                     target = "Ljava/util/List;add(ILjava/lang/Object;)V",
+                    //?}
                     ordinal = 0
-            ),
-            index = 0
-    )
-    private int tryInsert$undoResetPositionForExistingItem(int zero, @Local(ordinal = 1) int indexOfSameItem // == j in deobfuscated code
-    ) {
-        return indexOfSameItem;
-    }
-    // When adding an item to the bundle, and there's already an item of the same type already present in there,
-    // automatically select the slot of the latter.
-    // Also make sure that that slot becomes visible in the current window.
-    @Inject(
-            method = "tryInsert(Lnet/minecraft/world/item/ItemStack;)I",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Ljava/util/List;add(ILjava/lang/Object;)V",
-                    ordinal = 0, // First instance of this.items.add
-                    shift = At.Shift.AFTER // after the method
             )
     )
-    public void tryInsert$goToExistingItem(ItemStack itemStack, CallbackInfoReturnable<Integer> cir,
-        @Local(ordinal = 1) int indexOfSameItem  // == j in deobfuscated code
+    private void tryInsert$preserveExistingItemPosition(
+            List<ItemStack> items,
+            //? if < 26.3 {
+            int i,
+             //?}
+            Object item,
+            @Local(ordinal = 1) int indexOfSameItem
     ) {
+        // Instead of adding it to the start, add the merged items back to where they used to be.
+        items.add(indexOfSameItem, (ItemStack) item);
+
         if (this.selectedItem != -1) {
             // If the item stack the new item is supposed to be added to is...
 
             // ... after the current window, update the window so that the earliest window is shown where the item is visible,
             // making it look like it was automatically scrolled down to
-            if (BundleTooltipContext.getItemsToShowEnd(this.items.size(), this.toImmutable().getNumberOfItemsToShow()) < indexOfSameItem) {
+            if (BundleTooltipContext.getItemsToShowEnd(items.size(), this.toImmutable().getNumberOfItemsToShow()) < indexOfSameItem) {
                 BundleTooltipContext.rowOffset = BundleTooltipContext.getEarliestRowOffsetFromIndex(items.size(), indexOfSameItem);
             }
             // ... before the current window, update the window so that the latest window is shown where the item is visible,
             // making it look like it was automatically scrolled up to
-            else if (BundleTooltipContext.getItemsToShowStart(this.items.size()) > indexOfSameItem) {
+            else if (BundleTooltipContext.getItemsToShowStart(items.size()) > indexOfSameItem) {
                 BundleTooltipContext.rowOffset = BundleTooltipContext.getLatestRowOffsetFromIndex(items.size(), indexOfSameItem);
             }
             // ... otherwise just stay in the current window if the targeted slot is visible already
@@ -92,39 +97,40 @@ public class BundleContentsMutableMixin {
             this.toggleSelectedItem(indexOfSameItem);
         }
     }
+
     // When adding a new item to the bundle, add it right where the selectedItem cursor pointed to, not at the beginning.
-    @ModifyArg(
+    // Also, automatically select the slot of the item just added.
+    // If insertion causes a new topmost row with just 1 item in it to appear, shift the rowOffset accordingly.
+    @Redirect(
             method = "tryInsert(Lnet/minecraft/world/item/ItemStack;)I",
             at = @At(
                     value = "INVOKE",
+                    //? if >= 26.3 {
+                    /*target = "Ljava/util/List;addFirst(Ljava/lang/Object;)V",
+                    *///?} else {
                     target = "Ljava/util/List;add(ILjava/lang/Object;)V",
+                    //?}
                     ordinal = 1
-            ),
-            index = 0
-    )
-    private int tryInsert$undoResetPositionForNewItem(int zero) {
-        return Math.min(selectedItem + 1, this.items.size());
-    }
-    // When adding a new item to the bundle, automatically select the slot of the item just added.
-    // Also, if inserting causes a new topmost row with just 1 item in it to appear, shift the rowOffset accordingly.
-    @Inject(
-            method = "tryInsert(Lnet/minecraft/world/item/ItemStack;)I",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Ljava/util/List;add(ILjava/lang/Object;)V",
-                    ordinal = 1, // Second instance of this.items.add
-                    shift = At.Shift.AFTER // after the method
             )
     )
-    public void tryInsert$goToNewItem(ItemStack itemStack, CallbackInfoReturnable<Integer> cir) {
-        int itemInsertedIndex = Math.min(selectedItem + 1, this.items.size());
+    private void tryInsert$preserveNewItemPosition(
+            List<ItemStack> items,
+            //? if < 26.3 {
+            int i,
+            //?}
+            Object item
+    ) {
+        // Instead of adding it to the start, add the new items to the right of where the cursor pointed to.
+        int newItemIndex = Math.min(selectedItem + 1, items.size());
+        items.add(newItemIndex, (ItemStack) item);
+
         // Usually when inserting a new item, the rowOffset is not changed because you are already on the correct window as you insert the item.
         // However, here this is done because you can change the amount of rowOffsets by creating a new top row with just 1 item in it, in which case we just increase the rowOffset by 1.
-        if(this.items.size() % UnboundleConfig.config().columns == 1 && selectedItem > 0) {
-            BundleTooltipContext.rowOffset = Math.min(BundleTooltipContext.rowOffset + 1, BundleTooltipContext.getMaxRowOffset(this.items.size()));
+        if(items.size() % UnboundleConfig.config().columns == 1 && selectedItem > 0) {
+            BundleTooltipContext.rowOffset = Math.min(BundleTooltipContext.rowOffset + 1, BundleTooltipContext.getMaxRowOffset(items.size()));
         }
         if (this.selectedItem != -1) {
-            this.toggleSelectedItem(itemInsertedIndex);
+            this.toggleSelectedItem(newItemIndex);
         }
     }
 

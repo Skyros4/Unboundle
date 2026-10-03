@@ -62,11 +62,7 @@ public class BundleMouseActionsMixin {
         // These indexes are relative to entire list, not the current window
         int currentItemsToShowStart = BundleTooltipContext.getItemsToShowStart(bundleContents.size());
         int currentItemsToShowEnd = BundleTooltipContext.getItemsToShowEnd(bundleContents.size(), bundleContents.getNumberOfItemsToShow());
-        //? if >= 26.1 {
-        /*int currentlySelected = BundleItem.getSelectedItemIndex(bundleItemStack);
-        *///?} else {
         int currentlySelected = BundleItem.getSelectedItem(bundleItemStack);
-         //?}
         // scrollDirection is negated because renderBundleWithItemsTooltip within ClientBundleTooltip renders the items from bottom right to top left,
         // so forward (the index increases) would actually be up left, when we want it to be down right.
         int newSelected = ScrollWheelHandler.getNextScrollWheelSelection(-scrollDirection, currentlySelected, totalItems);

@@ -9,6 +9,9 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.UseCooldown;
+//? if >= 26.3 {
+/*import net.minecraft.util.Prediction;
+*///?}
 
 import java.util.Random;
 
@@ -37,7 +40,7 @@ public class BundleUsageContext {
         if (contents == null || contents.isEmpty()) return InteractionResult.PASS; // allows for the use() fallback
 
         int selectedItemIndex = getSelectedItemIndex(bundleItem, contents);
-        //? if >=26.1 {
+        //? if >= 26.1 {
         /*ItemStack selectedItem = contents.items().get(selectedItemIndex).create().copy();
         *///?} else {
         ItemStack selectedItem = contents.getItemUnsafe(selectedItemIndex).copy();
@@ -80,12 +83,7 @@ public class BundleUsageContext {
         // which is the same for both because they pull the seed from one shared location. Then they both generate a new seed, equal on both sides.
         if(UnboundleConfig.config().itemUsageMode == UnboundleConfig.ItemUsageMode.RANDOM) {
             // Read
-            //? if >= 1.21.5 {
             long randomHash = bundleItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getLong("randomHash").orElse(0L);
-             //?} else {
-            /*long randomHash = bundleItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getLong("randomHash");
-            *///?}
-
             int selectedItemIndex = new Random(randomHash).nextInt(contents.size());
             // Write
             CompoundTag tag = bundleItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
@@ -147,7 +145,7 @@ public class BundleUsageContext {
             // but the check for the item's slot in the creative inventory prevents that. Bundles bypass this check by nature.
             if (player.getAbilities().instabuild && !(selectedItem.getItem() instanceof BundleItem)) {
                 int selectedItemIndex = UnboundleConfig.config().itemUsageMode == UnboundleConfig.ItemUsageMode.RANDOM ? randomIndex : 0;
-                //? if >=26.1 {
+                //? if >= 26.1 {
                 /*transformedCopy = contents.items().get(selectedItemIndex).create().copy();
                 *///?} else {
                 transformedCopy = contents.getItemUnsafe(selectedItemIndex).copy();
@@ -166,7 +164,11 @@ public class BundleUsageContext {
             BundleTooltipContext.shiftClick = false;
             if (!inserted) {
                 if (!player.getInventory().add(transformedCopy)) {
+                    //? if >= 26.3 {
+                    /*player.drop(transformedCopy, false, Prediction.PREDICTED);
+                    *///?} else {
                     player.drop(transformedCopy, false);
+                     //?}
                 }
             }
         }

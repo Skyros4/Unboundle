@@ -3,9 +3,6 @@ package unboundle.mixin;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.serialization.DataResult;
-//? if >=26.1 {
-/*import net.minecraft.world.item.ItemInstance;
-*///?}
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.math.Fraction;
 import org.spongepowered.asm.mixin.injection.At;
@@ -15,6 +12,9 @@ import unboundle.BundleTooltipContext;
 import net.minecraft.world.item.component.BundleContents;
 import org.spongepowered.asm.mixin.*;
 import unboundle.UnboundleConfig;
+//? if >= 26.1 {
+/*import net.minecraft.world.item.ItemInstance;
+*///?}
 
 @Mixin(BundleContents.class)
 public class BundleContentsMixin {
